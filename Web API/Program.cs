@@ -11,6 +11,8 @@ using FluentValidation.AspNetCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Application.Services.Models.Users;
+using Application.Common.Filters;
+using Application.Common.Middleware;
 
 internal class Program
 {
@@ -31,7 +33,7 @@ internal class Program
 
         builder.Services.AddMvc(options =>
         {
-
+            options.Filters.Add<ExceptionFilter>();
         })
        .AddFluentValidation(options =>
        {
@@ -55,7 +57,7 @@ internal class Program
 
         app.UseAuthentication();
         app.UseAuthorization();
-
+        app.UseMiddleware<TokenValidatorMiddleware>();
         app.MapControllers();
 
         app.Run();

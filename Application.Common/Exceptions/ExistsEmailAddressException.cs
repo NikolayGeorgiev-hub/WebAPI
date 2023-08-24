@@ -1,6 +1,6 @@
 ﻿namespace Application.Common.Exceptions;
 
-public class ExistsEmailAddressException : Exception
+public class ExistsEmailAddressException : BaseApplicationException
 {
     public ExistsEmailAddressException(string? message) 
         : base(message)
