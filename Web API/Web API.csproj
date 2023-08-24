@@ -8,6 +8,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.Identity.UI" Version="7.0.10" />
     <PackageReference Include="Microsoft.AspNetCore.OpenApi" Version="7.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="7.0.10">
@@ -23,11 +25,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Controllers\" />
-  </ItemGroup>
-
-  <ItemGroup>
+    <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
     <ProjectReference Include="..\Application.Data\Application.Data.csproj" />
+    <ProjectReference Include="..\Application.Services\Application.Services.csproj" />
   </ItemGroup>
 
 </Project>
