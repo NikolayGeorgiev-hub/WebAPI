@@ -5,6 +5,6 @@ namespace Application.Services.Extensions;
 
 public static class AutoMapperExtensions
 {
-    public static UserProfileResponseModel ToUserProfileResponse(this ApplicationUser user)
-        => new UserProfileResponseModel(user.FirstName, user.Email!, user.PhoneNumber ?? "n/a");
+    public static UserResponseModels.Profile ToUserProfile(this ApplicationUser user)
+        => new UserResponseModels.Profile(user.FirstName, user.Email!, user.PhoneNumber ?? "n/a");
 }

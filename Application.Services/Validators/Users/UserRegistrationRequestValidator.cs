@@ -4,7 +4,7 @@ using FluentValidation;
 
 namespace Application.Services.Validators.Users;
 
-public class UserRegistrationRequestValidator : AbstractValidator<UserRegistrationRequestModel>
+public class UserRegistrationRequestValidator : AbstractValidator<UserRequestModels.Registration>
 {
     public UserRegistrationRequestValidator()
     {
@@ -51,7 +51,7 @@ public class UserRegistrationRequestValidator : AbstractValidator<UserRegistrati
             .WithMessage("Password not match confirm password field");
     }
 
-    private bool EqualsPasswords(UserRegistrationRequestModel requestModel)
+    private bool EqualsPasswords(UserRequestModels.Registration requestModel)
     {
         if (!requestModel.Password.Equals(requestModel.ConfirmPassword))
         {

@@ -19,14 +19,14 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("registration")]
-    public async Task<ResponseContent> RegistrationAsync([FromBody] UserRegistrationRequestModel requestModel)
+    public async Task<ResponseContent> RegistrationAsync([FromBody] UserRequestModels.Registration requestModel)
     {
         await this.accountService.RegistrationAsync(requestModel);
         return new ResponseContent();
     }
 
     [HttpPost("login")]
-    public async Task<ResponseContent<string>> LoginAsync([FromBody] UserLoginRequestModel requestModel)
+    public async Task<ResponseContent<string>> LoginAsync([FromBody] UserRequestModels.Login requestModel)
     {
         string token = await accountService.LoginAsync(requestModel);
         return new ResponseContent<string>()
@@ -37,10 +37,10 @@ public class AccountController : ControllerBase
 
     [Authorize]
     [HttpGet("profile")]
-    public async Task<ResponseContent<UserProfileResponseModel>> GetUserProfileAsync()
+    public async Task<ResponseContent<UserResponseModels.Profile>> GetUserProfileAsync()
     {
-        UserProfileResponseModel user = await this.accountService.GetUserProfileAsync(this.User.GetUserId());
-        return new ResponseContent<UserProfileResponseModel>()
+        UserResponseModels.Profile user = await this.accountService.GetUserProfileAsync(this.User.GetUserId());
+        return new ResponseContent<UserResponseModels.Profile>()
         {
             Result = user
         };

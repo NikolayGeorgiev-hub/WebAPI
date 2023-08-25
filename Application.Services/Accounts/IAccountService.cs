@@ -4,9 +4,9 @@ namespace Application.Services.Accounts;
 
 public interface IAccountService
 {
-    Task RegistrationAsync(UserRegistrationRequestModel requestModel);
+    Task RegistrationAsync(UserRequestModels.Registration requestModel);
 
-    Task<string> LoginAsync(UserLoginRequestModel requestModel);
+    Task<string> LoginAsync(UserRequestModels.Login requestModel);
 
-    Task<UserProfileResponseModel> GetUserProfileAsync(Guid userId);
+    Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId);
 }

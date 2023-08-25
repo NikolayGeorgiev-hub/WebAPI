@@ -31,7 +31,7 @@ public class AccountService : IAccountService
     }
 
 
-    public async Task RegistrationAsync(UserRegistrationRequestModel requestModel)
+    public async Task RegistrationAsync(UserRequestModels.Registration requestModel)
     {
         bool existsEmailAddress = await this.dbContext.Users.AnyAsync(x => x.Email == requestModel.Email);
         if (existsEmailAddress)
@@ -54,9 +54,9 @@ public class AccountService : IAccountService
         }
     }
 
-    public async Task<string> LoginAsync(UserLoginRequestModel requestModel)
+    public async Task<string> LoginAsync(UserRequestModels.Login requestModel)
     {
-        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email) 
+        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email)
             ?? throw new InvalidLoginException("Invalid email or password");
 
         PasswordHasher<ApplicationUser> passwordHasher = new();
@@ -67,16 +67,16 @@ public class AccountService : IAccountService
         {
             throw new InvalidLoginException("Invalid email or password");
         }
-        
+
         string token = await GenerateTokenAsync(user);
 
         return token;
     }
 
-    public async Task<UserProfileResponseModel> GetUserProfileAsync(Guid userId)
+    public async Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId)
     {
         ApplicationUser? user = await this.userManager.FindByIdAsync(userId.ToString());
-        return user is null ? throw new NotFoundUserException("Not found user") : user.ToUserProfileResponse();
+        return user is null ? throw new NotFoundUserException("Not found user") : user.ToUserProfile();
     }
 
     public async Task<string> GenerateTokenAsync(ApplicationUser user)

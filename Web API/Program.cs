@@ -39,7 +39,7 @@ internal class Program
         })
        .AddFluentValidation(options =>
        {
-           options.RegisterValidatorsFromAssemblyContaining<UserRegistrationRequestModel>();
+           options.RegisterValidatorsFromAssemblyContaining<UserRequestModels.Registration>();
            options.LocalizationEnabled = true;
        });
 
