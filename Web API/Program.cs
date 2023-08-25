@@ -13,6 +13,8 @@ using System.Text;
 using Application.Services.Models.Users;
 using Application.Common.Filters;
 using Application.Common.Middleware;
+using Microsoft.AspNetCore.Localization;
+using System.Globalization;
 
 internal class Program
 {
@@ -46,6 +48,9 @@ internal class Program
 
         var app = builder.Build();
 
+        ConfigureRequestLocalization(app, builder.Configuration);
+
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
@@ -77,6 +82,24 @@ internal class Program
     private static void AddApplicationConfigurations(IServiceCollection services, IConfiguration configuration)
     {
         services.Configure<JwtConfiguration>(configuration.GetSection(nameof(JwtConfiguration)));
+        services.Configure<RequestLocalizationConfigurations>(configuration.GetSection(nameof(RequestLocalizationConfigurations)));
+    }
+
+    private static void ConfigureRequestLocalization(IApplicationBuilder app, IConfiguration configuration)
+    {
+        RequestLocalizationConfigurations requestLocalization = new();
+        configuration.GetSection(nameof(RequestLocalizationConfigurations)).Bind(requestLocalization);
+
+        IList<CultureInfo> supportedCultures = new List<CultureInfo>();
+        requestLocalization.SupportedCultures.ToList()
+            .ForEach(x => supportedCultures.Add(new CultureInfo(x)));
+
+        app.UseRequestLocalization(new RequestLocalizationOptions
+        {
+            DefaultRequestCulture = new RequestCulture(requestLocalization.DefaultRequestCulture),
+            SupportedCultures = supportedCultures,
+            SupportedUICultures = supportedCultures
+        });
     }
 
     private static void AddApplicationServices(IServiceCollection services)
@@ -101,7 +124,7 @@ internal class Program
 
     private static void ConfigureJwtToken(IServiceCollection services, IConfiguration configuration)
     {
-        var jwtConfiguration = new JwtConfiguration();
+        JwtConfiguration jwtConfiguration = new();
         configuration.GetSection(nameof(JwtConfiguration)).Bind(jwtConfiguration);
 
 

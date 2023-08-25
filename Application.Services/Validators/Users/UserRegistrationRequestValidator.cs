@@ -1,4 +1,5 @@
-﻿using Application.Services.Models.Users;
+﻿using Application.Common.Resources;
+using Application.Services.Models.Users;
 using FluentValidation;
 
 namespace Application.Services.Validators.Users;
@@ -9,7 +10,7 @@ public class UserRegistrationRequestValidator : AbstractValidator<UserRegistrati
     {
         RuleFor(x => x.FirstName)
            .NotEmpty()
-           .WithMessage("{PropertyName} is required");
+           .WithMessage(Messages.RequiredUserFirstName);
 
         RuleFor(x => x.FirstName)
             .Length(3, 50)
@@ -22,7 +23,7 @@ public class UserRegistrationRequestValidator : AbstractValidator<UserRegistrati
         RuleFor(x => x.Email)
             .Must(ValidatorHelper.ValidateEmailAddress)
             .When(x => x.Email is not null)
-            .WithMessage("Invalid email address");
+            .WithMessage(Messages.InvalidEmailAddressFormat);
 
         RuleFor(x => x.Email)
             .Length(5, 100)
