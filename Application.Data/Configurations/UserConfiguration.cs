@@ -9,6 +9,12 @@ public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
     public void Configure(EntityTypeBuilder<ApplicationUser> user)
     {
         user
+            .Property(x => x.FirstName)
+            .IsRequired()
+            .HasMaxLength(50)
+            .IsUnicode();
+
+        user
              .HasMany(x => x.Roles)
              .WithOne()
              .HasForeignKey(x => x.UserId)

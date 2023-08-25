@@ -7,6 +7,14 @@ public class UserRegistrationRequestValidator : AbstractValidator<UserRegistrati
 {
     public UserRegistrationRequestValidator()
     {
+        RuleFor(x => x.FirstName)
+           .NotEmpty()
+           .WithMessage("{PropertyName} is required");
+
+        RuleFor(x => x.FirstName)
+            .Length(3, 50)
+            .WithMessage("{PropertyName} must by between {MinLength} - {MaxLength} symbols");
+
         RuleFor(x => x.Email)
             .NotEmpty()
             .WithMessage("{PropertyName} is required");

@@ -2,6 +2,7 @@
 using Application.Common.Exceptions;
 using Application.Data;
 using Application.Data.Models.Users;
+using Application.Services.Extensions;
 using Application.Services.Models.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -40,6 +41,7 @@ public class AccountService : IAccountService
 
         ApplicationUser user = new()
         {
+            FirstName = requestModel.FirstName,
             Email = requestModel.Email,
             UserName = requestModel.Email,
             EmailConfirmed = true
@@ -54,27 +56,30 @@ public class AccountService : IAccountService
 
     public async Task<string> LoginAsync(UserLoginRequestModel requestModel)
     {
-        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email);
-        if (user is null)
-        {
-            throw new InvalidLoginException("Invalid email or password");
-        }
+        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email) 
+            ?? throw new InvalidLoginException("Invalid email or password");
 
         PasswordHasher<ApplicationUser> passwordHasher = new();
-        bool isCorrectPassword = userManager.PasswordHasher.VerifyHashedPassword(user, user.PasswordHash!, requestModel.Password) == PasswordVerificationResult.Success;
+        bool isCorrectPassword = userManager.PasswordHasher
+            .VerifyHashedPassword(user, user.PasswordHash!, requestModel.Password) == PasswordVerificationResult.Success;
+
         if (!isCorrectPassword)
         {
             throw new InvalidLoginException("Invalid email or password");
         }
-
-
-        IList<string> roles = await this.userManager.GetRolesAsync(user);
-        string token = GenerateToken(user, roles);
+        
+        string token = await GenerateTokenAsync(user);
 
         return token;
     }
 
-    public string GenerateToken(ApplicationUser user, ICollection<string> roles)
+    public async Task<UserProfileResponseModel> GetUserProfileAsync(Guid userId)
+    {
+        ApplicationUser? user = await this.userManager.FindByIdAsync(userId.ToString());
+        return user is null ? throw new NotFoundUserException("Not found user") : user.ToUserProfileResponse();
+    }
+
+    public async Task<string> GenerateTokenAsync(ApplicationUser user)
     {
         var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.jwtConfigurations.Key));
         var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
@@ -85,6 +90,7 @@ public class AccountService : IAccountService
            new Claim(JwtRegisteredClaimNames.Email, user.Email!),
         }.ToList();
 
+        IList<string> roles = await this.userManager.GetRolesAsync(user);
         claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
 
         var token = new JwtSecurityToken(

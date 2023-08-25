@@ -1,6 +1,8 @@
 ﻿using Application.Common;
+using Application.Common.Extensions;
 using Application.Services.Accounts;
 using Application.Services.Models.Users;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web_API.Controllers;
@@ -30,6 +32,17 @@ public class AccountController : ControllerBase
         return new ResponseContent<string>()
         {
             Result = token
+        };
+    }
+
+    [Authorize]
+    [HttpGet("profile")]
+    public async Task<ResponseContent<UserProfileResponseModel>> GetUserProfileAsync()
+    {
+        UserProfileResponseModel user = await this.accountService.GetUserProfileAsync(this.User.GetUserId());
+        return new ResponseContent<UserProfileResponseModel>()
+        {
+            Result = user
         };
     }
 }
