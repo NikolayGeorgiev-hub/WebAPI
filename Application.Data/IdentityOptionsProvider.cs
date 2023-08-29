@@ -11,5 +11,6 @@ public static class IdentityOptionsProvider
         options.Password.RequireDigit = false;
         options.Password.RequireLowercase = false;
         options.Password.RequireUppercase = false;
+        options.SignIn.RequireConfirmedEmail = true;
     }
 }

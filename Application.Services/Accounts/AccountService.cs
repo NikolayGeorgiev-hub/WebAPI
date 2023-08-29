@@ -4,7 +4,9 @@ using Application.Data;
 using Application.Data.Models.Users;
 using Application.Services.Extensions;
 using Application.Services.Models.Users;
+using Application.Services.Tokens;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
@@ -18,16 +20,16 @@ public class AccountService : IAccountService
 {
     private readonly ApplicationDbContext dbContext;
     private readonly UserManager<ApplicationUser> userManager;
-    private readonly JwtConfiguration jwtConfigurations;
+    private readonly ITokenService tokenService;
 
     public AccountService(
         ApplicationDbContext dbContext,
         UserManager<ApplicationUser> userManager,
-        IOptions<JwtConfiguration> jwtConfigurations)
+        ITokenService tokenService)
     {
         this.dbContext = dbContext;
         this.userManager = userManager;
-        this.jwtConfigurations = jwtConfigurations.Value;
+        this.tokenService = tokenService;
     }
 
 
@@ -68,9 +70,54 @@ public class AccountService : IAccountService
             throw new InvalidLoginException("Invalid email or password");
         }
 
-        string token = await GenerateTokenAsync(user);
+        string token = await this.tokenService.GenerateJwtTokenAsync(user);
 
         return token;
+    }
+
+    public async Task ConfirmEmailAsync(UserRequestModels.ConfirmUserEmail requestModel)
+    {
+        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email)
+            ?? throw new NotFoundUserException("Not found user");
+
+        string confirmEmailToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(requestModel.Token));
+
+        bool isValidToken = await this.userManager
+            .VerifyUserTokenAsync(user, userManager.Options.Tokens.EmailConfirmationTokenProvider, "EmailConfirmation", confirmEmailToken);
+
+        if (!isValidToken)
+        {
+            throw new SecurityTokenException();
+        }
+
+        IdentityResult result = await this.userManager.ConfirmEmailAsync(user, confirmEmailToken);
+        if (!result.Succeeded)
+        {
+            throw new SecurityTokenException();
+        }
+    }
+
+    public async Task ResetPasswordAsync(UserRequestModels.ResetPassword requestModel)
+    {
+        ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email)
+            ?? throw new InvalidLoginException("Invalid email or password");
+
+        string resetPasswordToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(requestModel.Token));
+
+        bool isValidToken = await this.userManager
+            .VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", resetPasswordToken);
+
+        if (!isValidToken)
+        {
+            throw new SecurityTokenException();
+        }
+
+        IdentityResult result = await this.userManager.ResetPasswordAsync(user, resetPasswordToken, requestModel.Password);
+        if (!result.Succeeded)
+        {
+            throw new SecurityTokenException();
+        }
+
     }
 
     public async Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId)
@@ -79,28 +126,4 @@ public class AccountService : IAccountService
         return user is null ? throw new NotFoundUserException("Not found user") : user.ToUserProfile();
     }
 
-    public async Task<string> GenerateTokenAsync(ApplicationUser user)
-    {
-        var securityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(this.jwtConfigurations.Key));
-        var credentials = new SigningCredentials(securityKey, SecurityAlgorithms.HmacSha256);
-
-        var claims = new[]
-        {
-           new Claim(JwtRegisteredClaimNames.NameId, user.Id.ToString()),
-           new Claim(JwtRegisteredClaimNames.Email, user.Email!),
-        }.ToList();
-
-        IList<string> roles = await this.userManager.GetRolesAsync(user);
-        claims.AddRange(roles.Select(role => new Claim(ClaimTypes.Role, role)));
-
-        var token = new JwtSecurityToken(
-          this.jwtConfigurations.Issuer,
-          this.jwtConfigurations.Audience,
-          claims,
-          null,
-          expires: DateTime.Now.AddDays(1),
-          signingCredentials: credentials);
-
-        return new JwtSecurityTokenHandler().WriteToken(token);
-    }
 }

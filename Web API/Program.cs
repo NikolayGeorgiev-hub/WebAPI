@@ -15,6 +15,7 @@ using Application.Common.Filters;
 using Application.Common.Middleware;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
+using Application.Services.Tokens;
 
 internal class Program
 {
@@ -105,6 +106,7 @@ internal class Program
     private static void AddApplicationServices(IServiceCollection services)
     {
         services.AddScoped<IAccountService, AccountService>();
+        services.AddScoped<ITokenService, TokenService>();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)

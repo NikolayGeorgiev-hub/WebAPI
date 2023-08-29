@@ -2,6 +2,7 @@
 using Application.Common.Extensions;
 using Application.Services.Accounts;
 using Application.Services.Models.Users;
+using Application.Services.Tokens;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -12,10 +13,14 @@ namespace Web_API.Controllers;
 public class AccountController : ControllerBase
 {
     private readonly IAccountService accountService;
+    private readonly ITokenService tokenService;
 
-    public AccountController(IAccountService accountService)
+    public AccountController(
+        IAccountService accountService,
+        ITokenService tokenService)
     {
         this.accountService = accountService;
+        this.tokenService = tokenService;
     }
 
     [HttpPost("registration")]
@@ -44,5 +49,60 @@ public class AccountController : ControllerBase
         {
             Result = user
         };
+    }
+
+    [HttpPost("forget-password")]
+    public async Task<ResponseContent<string>> GetForgetPasswordTokenAsync(UserRequestModels.ForgetPassword requestModel)
+    {
+        string resetPasswordToken = await this.tokenService.GenerateForgetPasswordTokenAsync(requestModel);
+
+        string? callBack = Url.Action(
+            action: "ResetPassword",
+            controller: "Account",
+            new
+            {
+                token = resetPasswordToken,
+                email = requestModel.Email
+            }, Request.Scheme);
+
+        return new ResponseContent<string>
+        {
+            Result = callBack
+        };
+    }
+
+    [HttpPost("confirm-email")]
+    public async Task<ResponseContent<string>> GetConfirmEmailTokenAsync(UserRequestModels.ConfirmEmail requestModel)
+    {
+        string confirmEmailToken = await this.tokenService.GenerateConfirmEmailTokenAsync(requestModel);
+
+        string? callBack = Url.Action(
+            action: "ConfirmEmail",
+            controller: "Account",
+            new
+            {
+                TokenOptions = confirmEmailToken,
+                email = requestModel.Email
+            }, Request.Scheme);
+
+        return new ResponseContent<string>
+        {
+            Result = callBack
+        };
+    }
+
+    [HttpPost("confirm")]
+    public async Task<ResponseContent> ConfirmEmailAsync(UserRequestModels.ConfirmUserEmail requestModel)
+    {
+        await this.accountService.ConfirmEmailAsync(requestModel);
+        return new ResponseContent();
+    }
+
+    [HttpPost("reset-password")]
+    public async Task<ResponseContent> ResetPasswordAsync(UserRequestModels.ResetPassword requestModel)
+    {
+        await this.accountService.ResetPasswordAsync(requestModel);
+
+        return new ResponseContent();
     }
 }
