@@ -70,6 +70,11 @@ public class AccountService : IAccountService
             throw new InvalidLoginException("Invalid email or password");
         }
 
+        if (!user.EmailConfirmed)
+        {
+            throw new NotConfirmedEmailException("Pleas confirm our email address");
+        }
+
         string token = await this.tokenService.GenerateJwtTokenAsync(user);
 
         return token;
@@ -101,6 +106,11 @@ public class AccountService : IAccountService
     {
         ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email)
             ?? throw new InvalidLoginException("Invalid email or password");
+
+        if (!user.EmailConfirmed)
+        {
+            throw new NotConfirmedEmailException("Pleas confirm our email address");
+        }
 
         string resetPasswordToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(requestModel.Token));
 
