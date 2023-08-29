@@ -105,7 +105,7 @@ public class AccountService : IAccountService
     public async Task ResetPasswordAsync(UserRequestModels.ResetPassword requestModel)
     {
         ApplicationUser? user = await this.userManager.FindByEmailAsync(requestModel.Email)
-            ?? throw new InvalidLoginException("Invalid email or password");
+            ?? throw new NotFoundUserException("Not found user");
 
         if (!user.EmailConfirmed)
         {

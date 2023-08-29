@@ -81,7 +81,7 @@ public class AccountController : ControllerBase
             controller: "Account",
             new
             {
-                TokenOptions = confirmEmailToken,
+                token = confirmEmailToken,
                 email = requestModel.Email
             }, Request.Scheme);
 
@@ -92,14 +92,14 @@ public class AccountController : ControllerBase
     }
 
     [HttpPost("confirm")]
-    public async Task<ResponseContent> ConfirmEmailAsync(UserRequestModels.ConfirmUserEmail requestModel)
+    public async Task<ResponseContent> ConfirmEmailAsync([FromQuery] string token, [FromQuery] string email, UserRequestModels.ConfirmUserEmail requestModel)
     {
         await this.accountService.ConfirmEmailAsync(requestModel);
         return new ResponseContent();
     }
 
     [HttpPost("reset-password")]
-    public async Task<ResponseContent> ResetPasswordAsync(UserRequestModels.ResetPassword requestModel)
+    public async Task<ResponseContent> ResetPasswordAsync([FromQuery] string token, [FromQuery] string email, UserRequestModels.ResetPassword requestModel)
     {
         await this.accountService.ResetPasswordAsync(requestModel);
 

@@ -16,6 +16,7 @@ using Application.Common.Middleware;
 using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using Application.Services.Tokens;
+using Microsoft.AspNetCore.Identity;
 
 internal class Program
 {
@@ -129,6 +130,8 @@ internal class Program
         JwtConfiguration jwtConfiguration = new();
         configuration.GetSection(nameof(JwtConfiguration)).Bind(jwtConfiguration);
 
+      services.Configure<DataProtectionTokenProviderOptions>(options =>
+       options.TokenLifespan = TimeSpan.FromSeconds(5));
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>
