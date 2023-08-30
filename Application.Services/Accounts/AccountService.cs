@@ -1,4 +1,5 @@
 ﻿using Application.Common.Exceptions;
+using Application.Common.Extensions;
 using Application.Data;
 using Application.Data.Models.Users;
 using Application.Services.Extensions;
@@ -56,6 +57,7 @@ public class AccountService : IAccountService
         IdentityResult result = await this.userManager.CreateAsync(user, requestModel.Password);
         if (!result.Succeeded)
         {
+            this.logger.LogError(IdentityResultExtensions.GetIdentityResultMessages(result));
             //throw something
         }
     }
@@ -105,11 +107,7 @@ public class AccountService : IAccountService
         IdentityResult result = await this.userManager.ConfirmEmailAsync(user, confirmEmailToken);
         if (!result.Succeeded)
         {
-            StringBuilder identityResultMessage = new();
-            IEnumerable<string> identityResultMessages = result.Errors.Select(x => x.Description);
-            identityResultMessages.ToList().ForEach(x => identityResultMessage.AppendLine(x));
-
-            this.logger.LogError(identityResultMessage.ToString());
+            this.logger.LogError(IdentityResultExtensions.GetIdentityResultMessages(result));
             throw new SecurityTokenException();
         }
     }
@@ -140,11 +138,7 @@ public class AccountService : IAccountService
         IdentityResult result = await this.userManager.ResetPasswordAsync(user, resetPasswordToken, requestModel.Password);
         if (!result.Succeeded)
         {
-            StringBuilder identityResultMessage = new();
-            IEnumerable<string> identityResultMessages = result.Errors.Select(x => x.Description);
-            identityResultMessages.ToList().ForEach(x => identityResultMessage.AppendLine(x));
-
-            this.logger.LogError(identityResultMessage.ToString());
+            this.logger.LogError(IdentityResultExtensions.GetIdentityResultMessages(result));
             throw new SecurityTokenException();
         }
 

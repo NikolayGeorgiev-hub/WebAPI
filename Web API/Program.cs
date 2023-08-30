@@ -19,6 +19,7 @@ using Application.Services.Tokens;
 using Microsoft.AspNetCore.Identity;
 using Application.Services.Validators;
 using Application.Services.Validators.Users;
+using Application.Services.Administration;
 
 internal class Program
 {
@@ -112,6 +113,7 @@ internal class Program
         services.AddScoped<IValidationService, ValidationService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
+        services.AddScoped<IRoleService, RoleService>();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)
