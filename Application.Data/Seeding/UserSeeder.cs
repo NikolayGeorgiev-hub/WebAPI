@@ -1,0 +1,28 @@
+﻿using Application.Common.Extensions;
+using Application.Data.Models.Users;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.DependencyInjection;
+using static Application.Common.Constants;
+
+namespace Application.Data.Seeding;
+
+public class UserSeeder : ISeeder
+{
+    public async Task SeedAsync(ApplicationDbContext dbContext, IServiceProvider serviceProvider)
+    {
+        var userManager = serviceProvider.GetRequiredService<UserManager<ApplicationUser>>();
+        int usersCount = userManager.Users.Count();
+
+        if (usersCount == 0)
+        {
+            IdentityResult result = await userManager.CreateAsync(new ApplicationUser
+            {
+                FirstName = "Test user",
+                Email = "testuser@gmail.com",
+                UserName = "testuser@gmail.com",
+                EmailConfirmed = true,
+
+            }, password: ApplicationPassword);
+        }
+    }
+}

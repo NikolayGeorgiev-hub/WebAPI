@@ -51,7 +51,6 @@ public class AccountService : IAccountService
             FirstName = requestModel.FirstName,
             Email = requestModel.Email,
             UserName = requestModel.Email,
-            EmailConfirmed = true
         };
 
         IdentityResult result = await this.userManager.CreateAsync(user, requestModel.Password);

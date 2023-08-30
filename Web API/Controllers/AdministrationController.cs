@@ -3,10 +3,11 @@ using Application.Services.Administration;
 using Application.Services.Models.Roles;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using static Application.Common.Constants;
 
 namespace Web_API.Controllers;
 
-[Authorize(Roles = "Admin")]
+[Authorize(Roles = AdministratorRoleName)]
 [Route("api/[controller]/roles")]
 [ApiController]
 public class AdministrationController : ControllerBase

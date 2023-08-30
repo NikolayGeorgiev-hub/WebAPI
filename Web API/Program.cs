@@ -20,6 +20,7 @@ using Microsoft.AspNetCore.Identity;
 using Application.Services.Validators;
 using Application.Services.Validators.Users;
 using Application.Services.Administration;
+using Application.Data.Seeding;
 
 internal class Program
 {
@@ -56,7 +57,13 @@ internal class Program
 
         ConfigureRequestLocalization(app, builder.Configuration);
 
+        using (var serviceScope = app.Services.CreateScope())
+        {
+            var dbContext = serviceScope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
+            dbContext.Database.Migrate();
 
+            new ApplicationDbContextSeeder().SeedAsync(dbContext, serviceScope.ServiceProvider).GetAwaiter().GetResult();
+        }
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {
