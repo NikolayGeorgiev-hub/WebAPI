@@ -8,20 +8,6 @@ public class ResetPasswordRequestValidator : AbstractValidator<UserRequestModels
 {
     public ResetPasswordRequestValidator()
     {
-        RuleFor(x => x.Email)
-           .NotEmpty()
-           .WithMessage("{PropertyName} is required");
-
-        RuleFor(x => x.Email)
-            .Must(ValidatorHelper.ValidateEmailAddress)
-            .When(x => x.Email is not null)
-            .WithMessage(Messages.InvalidEmailAddressFormat);
-
-        RuleFor(x => x.Email)
-            .Length(5, 100)
-            .WithMessage("{PropertyName} must by between {MinLength} - {MaxLength} symbols");
-
-
         RuleFor(x => x.Password)
               .NotEmpty()
               .WithMessage("{PropertyName} is required");
@@ -40,7 +26,7 @@ public class ResetPasswordRequestValidator : AbstractValidator<UserRequestModels
             .WithMessage("{PropertyName} must by between {MinLength} - {MaxLength} symbols");
 
         RuleFor(x => x)
-            .Must(EqualsPasswords)
+            .Must(EqualsPasswords).When(x => x.Password is not null || x.ConfirmPassword is not null)
             .WithMessage("Password not match confirm password field");
     }
 

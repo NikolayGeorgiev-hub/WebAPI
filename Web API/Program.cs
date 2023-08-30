@@ -17,6 +17,8 @@ using Microsoft.AspNetCore.Localization;
 using System.Globalization;
 using Application.Services.Tokens;
 using Microsoft.AspNetCore.Identity;
+using Application.Services.Validators;
+using Application.Services.Validators.Users;
 
 internal class Program
 {
@@ -38,6 +40,7 @@ internal class Program
         builder.Services.AddMvc(options =>
         {
             options.Filters.Add<ExceptionFilter>();
+            options.Filters.Add<ModelStateFilter>();
         })
        .AddFluentValidation(options =>
        {
@@ -106,6 +109,7 @@ internal class Program
 
     private static void AddApplicationServices(IServiceCollection services)
     {
+        services.AddScoped<IValidationService, ValidationService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
     }
@@ -130,8 +134,8 @@ internal class Program
         JwtConfiguration jwtConfiguration = new();
         configuration.GetSection(nameof(JwtConfiguration)).Bind(jwtConfiguration);
 
-      services.Configure<DataProtectionTokenProviderOptions>(options =>
-       options.TokenLifespan = TimeSpan.FromSeconds(5));
+        services.Configure<DataProtectionTokenProviderOptions>(options =>
+         options.TokenLifespan = TimeSpan.FromHours(5));
 
         services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             .AddJwtBearer(options =>

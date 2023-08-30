@@ -9,9 +9,9 @@ public interface IAccountService
 
     Task<string> LoginAsync(UserRequestModels.Login requestModel);
 
-    Task ConfirmEmailAsync(UserRequestModels.ConfirmUserEmail requestModel);
+    Task ConfirmEmailAsync(UserRequestModels.IdentityToken requestModel);
 
-    Task ResetPasswordAsync(UserRequestModels.ResetPassword requestModel);
+    Task ResetPasswordAsync(UserRequestModels.IdentityToken tokenModel, UserRequestModels.ResetPassword requestModel);
 
     Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId);
 }

@@ -4,10 +4,15 @@ using FluentValidation;
 
 namespace Application.Services.Validators.Users;
 
-public class EmailConformationRequestValidator : AbstractValidator<UserRequestModels.ConfirmUserEmail>
+public class EmailConformationRequestValidator : AbstractValidator<UserRequestModels.IdentityToken>
 {
     public EmailConformationRequestValidator()
     {
+        RuleFor(x => x.Token)
+            .NotEmpty()
+            .WithMessage("Invalid token value");
+
+
         RuleFor(x => x.Email)
              .NotEmpty()
             .WithMessage("{PropertyName} is required");
