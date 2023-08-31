@@ -1,5 +1,4 @@
-﻿using Application.Common.Extensions;
-using Application.Data.Models.Users;
+﻿using Application.Data.Models.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
 using static Application.Common.Constants;
@@ -17,12 +16,12 @@ public class UserSeeder : ISeeder
         {
             IdentityResult result = await userManager.CreateAsync(new ApplicationUser
             {
-                FirstName = "Test user",
-                Email = "testuser@gmail.com",
-                UserName = "testuser@gmail.com",
+                FirstName = TestUser.FirstName,
+                Email = TestUser.Email,
+                UserName = TestUser.Email,
                 EmailConfirmed = true,
 
-            }, password: ApplicationPassword);
+            }, password: TestUser.Password);
         }
     }
 }

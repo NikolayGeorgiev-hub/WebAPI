@@ -4,5 +4,14 @@ public static class Constants
 {
     public const string AdministratorRoleName = "Admin";
 
-    public const string ApplicationPassword = "123456";
+
+
+    public static class TestUser
+    {
+        public const string FirstName = "Test User";
+
+        public const string Email = "testuser@gmail.com";
+
+        public const string Password = "123456";
+    }
 }
