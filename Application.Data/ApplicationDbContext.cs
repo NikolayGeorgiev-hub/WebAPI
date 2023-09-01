@@ -1,4 +1,6 @@
-﻿using Application.Data.Models.Users;
+﻿using Application.Data.Models.Categories;
+using Application.Data.Models.Products;
+using Application.Data.Models.Users;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
@@ -16,6 +18,12 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
 
         this.ConfigureApplicationRelations(builder);
     }
+
+    public DbSet<Category> Categories { get; set; }
+
+    public DbSet<SubCategory> SubCategories { get; set; }
+
+    public DbSet<Product> Products { get; set; }
 
     private void ConfigureApplicationRelations(ModelBuilder builder)
          => builder.ApplyConfigurationsFromAssembly(this.GetType().Assembly);

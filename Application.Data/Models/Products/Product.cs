@@ -15,4 +15,8 @@ public class Product
     public Guid CategoryId { get; set; }
 
     public Category Category { get; set; }
+
+    public Guid SubCategoryId { get; set; }
+
+    public Guid OwnerId { get; set; }
 }

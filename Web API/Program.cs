@@ -21,6 +21,8 @@ using Application.Services.Validators;
 using Application.Services.Validators.Users;
 using Application.Services.Administration;
 using Application.Data.Seeding;
+using Application.Services.Categories;
+using Application.Services.Products;
 
 internal class Program
 {
@@ -121,6 +123,8 @@ internal class Program
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRoleService, RoleService>();
+        services.AddScoped<ICategoryService,CategoryService>();
+        services.AddScoped<IProductService, ProductService>();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)
