@@ -4,6 +4,7 @@ using Application.Data.Models.Products;
 using Application.Services.Extensions;
 using Application.Services.Models;
 using Application.Services.Models.Products;
+using Application.Services.Ratings;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Products;
@@ -11,10 +12,14 @@ namespace Application.Services.Products;
 public class ProductService : IProductService
 {
     private readonly ApplicationDbContext dbContext;
+    private readonly IRatingService ratingService;
 
-    public ProductService(ApplicationDbContext dbContext)
+    public ProductService(
+        ApplicationDbContext dbContext,
+        IRatingService ratingService)
     {
         this.dbContext = dbContext;
+        this.ratingService = ratingService;
     }
 
     public async Task CreteProductAsync(Guid ownerId, CreateProductRequestModel requestModel)
@@ -53,10 +58,12 @@ public class ProductService : IProductService
             .Take(productsFilter.ItemsPerPage!.Value);
 
         int pagesCount = (int)Math.Ceiling((double)totalCount / productsFilter.ItemsPerPage!.Value);
+       
 
         IReadOnlyList<ProductResponseModel> products = await productsQuery
-            .Select(product => product.ToProductResponseModel())
+            .Select(product => product.ToProductResponseModel(this.ratingService.GetProductRating(product.Id)))
             .ToListAsync();
+            
 
         return new PaginationResponseModel<ProductResponseModel>
         {

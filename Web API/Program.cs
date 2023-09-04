@@ -23,6 +23,7 @@ using Application.Services.Administration;
 using Application.Data.Seeding;
 using Application.Services.Categories;
 using Application.Services.Products;
+using Application.Services.Ratings;
 
 internal class Program
 {
@@ -125,6 +126,7 @@ internal class Program
         services.AddScoped<IRoleService, RoleService>();
         services.AddScoped<ICategoryService,CategoryService>();
         services.AddScoped<IProductService, ProductService>();
+        services.AddScoped<IRatingService, RatingService>();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)
