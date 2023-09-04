@@ -58,12 +58,12 @@ public class ProductService : IProductService
             .Take(productsFilter.ItemsPerPage!.Value);
 
         int pagesCount = (int)Math.Ceiling((double)totalCount / productsFilter.ItemsPerPage!.Value);
-       
+
 
         IReadOnlyList<ProductResponseModel> products = await productsQuery
             .Select(product => product.ToProductResponseModel(this.ratingService.GetProductRating(product.Id)))
             .ToListAsync();
-            
+
 
         return new PaginationResponseModel<ProductResponseModel>
         {
@@ -95,11 +95,39 @@ public class ProductService : IProductService
             foreach (var subCategoryId in productsFilter.SubCategories)
             {
                 IQueryable<Product> tempProductQuery = productsQuery.Where(x => x.SubCategoryId == subCategoryId);
-
                 filterResults.Add(tempProductQuery);
             }
 
+            productsQuery = filterResults.Aggregate((q1, q2) => q1.Union(q2));
+
             //add all to one products query
+        }
+
+        if (productsFilter.SortingFilter is not null)
+        {
+            switch (productsFilter.SortingFilter)
+            {
+                case SortingFilter.NameDescending:
+                    productsQuery = productsQuery.OrderByDescending(x => x.Name);
+                    break;
+                case SortingFilter.NameAscending:
+                    productsQuery = productsQuery.OrderBy(x => x.Name);
+                    break;
+                case SortingFilter.PriceDescending:
+                    productsQuery = productsQuery.OrderByDescending(x => x.Price);
+                    break;
+                case SortingFilter.PriceAscending:
+                    productsQuery = productsQuery.OrderBy(x => x.Price);
+                    break;
+                case SortingFilter.RatingDescending:
+                    productsQuery = productsQuery.OrderByDescending(x => x.Ratings.Select(x => x.Value).Average());
+                    break;
+                case SortingFilter.RatingAscending:
+                    productsQuery = productsQuery.OrderBy(x => x.Ratings.Select(x => x.Value).Average());
+                    break;
+                default:
+                    break;
+            }
         }
 
         return productsQuery;
