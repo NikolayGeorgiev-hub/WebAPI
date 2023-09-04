@@ -30,9 +30,23 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
              .HasPrecision(10, 2);
 
         product
+            .Property(x => x.InStock)
+            .IsRequired();
+
+        product
+            .Property(x => x.Quantity)
+            .IsRequired();
+
+        product
             .HasOne(x => x.Category)
             .WithMany(x => x.Products)
             .HasForeignKey(x => x.CategoryId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+        product
+            .HasOne(x => x.SubCategory)
+            .WithMany()
+            .HasForeignKey(x => x.SubCategoryId)
             .OnDelete(DeleteBehavior.Restrict);
     }
 }

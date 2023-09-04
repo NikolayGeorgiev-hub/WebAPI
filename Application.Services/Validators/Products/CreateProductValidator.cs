@@ -27,6 +27,10 @@ public class CreateProductValidator : AbstractValidator<CreateProductRequestMode
             .ExclusiveBetween(0.1m, 50000m)
             .WithMessage("{PropertyName} must by in range {MinValue} - {MaxValue}");
 
+        RuleFor(x => x.Quantity)
+           .ExclusiveBetween(1, 50000)
+           .WithMessage("{PropertyName} must by in range {MinValue} - {MaxValue} items");
+
         RuleFor(x => x.CategoryId)
             .NotEmpty()
             .WithMessage("{PropertyName} is required");

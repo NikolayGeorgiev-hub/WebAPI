@@ -12,11 +12,17 @@ public class Product
 
     public decimal Price { get; set; }
 
+    public int Quantity { get; set; }
+
+    public bool InStock { get; set; }
+
     public Guid CategoryId { get; set; }
 
     public Category Category { get; set; }
 
     public Guid SubCategoryId { get; set; }
+
+    public SubCategory SubCategory { get; set; }
 
     public Guid OwnerId { get; set; }
 }
