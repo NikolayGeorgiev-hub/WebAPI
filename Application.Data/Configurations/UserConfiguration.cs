@@ -25,5 +25,11 @@ public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
             .WithOne()
             .HasForeignKey(x => x.OwnerId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        user
+            .HasMany(x => x.Ratings)
+            .WithOne()
+            .HasForeignKey(x => x.UserId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Application.Common.Exceptions.Products;
 using Application.Data;
 using Application.Data.Models.Products;
+using Application.Services.Extensions;
 using Application.Services.Models;
 using Application.Services.Models.Products;
 using Microsoft.EntityFrameworkCore;
@@ -53,13 +54,9 @@ public class ProductService : IProductService
 
         int pagesCount = (int)Math.Ceiling((double)totalCount / productsFilter.ItemsPerPage!.Value);
 
-        IReadOnlyList<ProductResponseModel> products = await productsQuery.Select(product => new ProductResponseModel(
-            product.Name,
-            product.Description,
-            product.Price,
-            product.Quantity,
-            product.Category.Name,
-            product.SubCategory.Name, product.InStock)).ToListAsync();
+        IReadOnlyList<ProductResponseModel> products = await productsQuery
+            .Select(product => product.ToProductResponseModel())
+            .ToListAsync();
 
         return new PaginationResponseModel<ProductResponseModel>
         {
@@ -82,6 +79,20 @@ public class ProductService : IProductService
         if (productsFilter.SearchTerm is not null)
         {
             productsQuery = productsQuery.Where(x => x.Name.Contains(productsFilter.SearchTerm));
+        }
+
+        if (productsFilter.SubCategories is not null)
+        {
+            HashSet<IQueryable<Product>> filterResults = new();
+
+            foreach (var subCategoryId in productsFilter.SubCategories)
+            {
+                IQueryable<Product> tempProductQuery = productsQuery.Where(x => x.SubCategoryId == subCategoryId);
+
+                filterResults.Add(tempProductQuery);
+            }
+
+            //add all to one products query
         }
 
         return productsQuery;

@@ -1,4 +1,5 @@
 ﻿using Application.Data.Models.Categories;
+using Application.Data.Models.Ratings;
 
 namespace Application.Data.Models.Products;
 
@@ -25,4 +26,6 @@ public class Product
     public SubCategory SubCategory { get; set; }
 
     public Guid OwnerId { get; set; }
+
+    public ICollection<Rating> Ratings { get; set; }
 }
