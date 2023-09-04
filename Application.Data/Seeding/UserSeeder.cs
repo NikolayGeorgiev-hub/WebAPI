@@ -1,6 +1,7 @@
 ﻿using Application.Data.Models.Users;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.DependencyInjection;
+
 using static Application.Common.Constants;
 
 namespace Application.Data.Seeding;

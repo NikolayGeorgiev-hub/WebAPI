@@ -23,6 +23,7 @@ public class ApplicationDbContextSeeder : ISeeder
         {
             new RoleSeeder(),
             new UserSeeder(),
+            new ProductsSeeder(),
         };
 
         foreach (var seeder in seeders)
