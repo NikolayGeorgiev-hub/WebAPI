@@ -46,8 +46,8 @@ public class ProductService : IProductService
     {
         IQueryable<Product> productsQuery = this.dbContext.Products
             .Include(x => x.Category)
-            .Include(x => x.SubCategory);
-
+            .Include(x => x.SubCategory)
+            .OrderBy(x => x.Name);
 
         productsQuery = this.ApplyProductsFilter(productsQuery, productsFilter);
 
@@ -99,8 +99,6 @@ public class ProductService : IProductService
             }
 
             productsQuery = filterResults.Aggregate((q1, q2) => q1.Union(q2));
-
-            //add all to one products query
         }
 
         if (productsFilter.SortingFilter is not null)

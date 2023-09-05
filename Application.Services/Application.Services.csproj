@@ -15,8 +15,4 @@
     <ProjectReference Include="..\Application.Data\Application.Data.csproj" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Models\Orders\" />
-  </ItemGroup>
-
 </Project>

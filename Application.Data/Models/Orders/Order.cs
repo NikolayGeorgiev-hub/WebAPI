@@ -2,6 +2,11 @@
 
 public class Order
 {
+    public Order()
+    {
+        this.Products = new List<ProductsList>();
+    }
+
     public Guid Id { get; set; }
 
     public DateTime CreatedOn { get; set; }

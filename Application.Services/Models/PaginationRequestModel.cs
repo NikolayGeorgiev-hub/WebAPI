@@ -16,7 +16,13 @@ public class PaginationRequestModel
 
     public int? PageNumber
     {
-        get => pageNumber ?? DefaultPageNumber;
+        get
+        {
+            if (pageNumber is null || pageNumber <= 0)
+                pageNumber = DefaultPageNumber;
+            
+            return pageNumber;
+        }
         set => pageNumber = value;
     }
 
