@@ -1,5 +1,6 @@
 ﻿using Application.Data.Models.Categories;
 using Application.Data.Models.Products;
+
 using static Application.Common.Constants;
 
 namespace Application.Data.Seeding;

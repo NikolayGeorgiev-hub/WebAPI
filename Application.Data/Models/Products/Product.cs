@@ -1,4 +1,5 @@
 ﻿using Application.Data.Models.Categories;
+using Application.Data.Models.Orders;
 using Application.Data.Models.Ratings;
 
 namespace Application.Data.Models.Products;
@@ -28,4 +29,6 @@ public class Product
     public Guid OwnerId { get; set; }
 
     public ICollection<Rating> Ratings { get; set; }
+
+    public ICollection<ProductsList> Orders { get; set; }
 }

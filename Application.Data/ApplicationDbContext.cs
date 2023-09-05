@@ -1,4 +1,5 @@
 ﻿using Application.Data.Models.Categories;
+using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Data.Models.Ratings;
 using Application.Data.Models.Users;
@@ -27,6 +28,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Product> Products { get; set; }
 
     public DbSet<Rating> Ratings { get; set; }
+
+    public DbSet<Order> Orders { get; set; }
+
+    public DbSet<ProductsList> ProductsLists { get; set; }
 
     private void ConfigureApplicationRelations(ModelBuilder builder)
          => builder.ApplyConfigurationsFromAssembly(this.GetType().Assembly);

@@ -1,4 +1,5 @@
-﻿using Application.Data.Models.Products;
+﻿using Application.Data.Models.Orders;
+using Application.Data.Models.Products;
 using Application.Data.Models.Ratings;
 using Microsoft.AspNetCore.Identity;
 
@@ -12,4 +13,6 @@ public class ApplicationUser : IdentityUser<Guid>
     public ICollection<Product> Products { get; set; }
 
     public ICollection<Rating> Ratings { get; set; }
+
+    public ICollection<Order> Orders { get; set; }
 }
