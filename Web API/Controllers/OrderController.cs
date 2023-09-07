@@ -64,6 +64,16 @@ public class OrderController : ControllerBase
         };
     }
 
+    [HttpPost("send")]
+    public async Task<ResponseContent<OrderDetailsResponseModel>> SendOrderAsync()
+    {
+        OrderDetailsResponseModel orderDetails = await this.orderService.SendOrderAsync(GetUserId());
+        return new ResponseContent<OrderDetailsResponseModel>()
+        {
+            Result = orderDetails
+        };
+    }
+
     private Guid GetUserId()
         => ClaimsPrincipalExtensions.GetUserId(this.User);
 }

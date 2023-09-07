@@ -11,4 +11,6 @@ public interface IOrderService
     Task RemoveProductAsync(Guid userId, Guid productId);
 
     Task<OrderDetailsResponseModel> OrderDetailsAsync(Guid userId);
+
+    Task<OrderDetailsResponseModel> SendOrderAsync(Guid userId);
 }

@@ -66,15 +66,7 @@ public class OrderService : IOrderService
 
     public async Task EditProductsQuantityAsync(Guid userId, Guid productId, string action)
     {
-        Order? order = await this.dbContext.Orders
-            .Include(x => x.Products)
-            .ThenInclude(x => x.Product)
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Status == OrderStatus.InProgress);
-
-        if (order is null)
-        {
-            throw new NotFoundOrderException("Not found exception");
-        }
+        Order? order = await GetUserOrderAsync(userId);
 
         bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
         if (!existsProduct)
@@ -113,14 +105,7 @@ public class OrderService : IOrderService
 
     public async Task RemoveProductAsync(Guid userId, Guid productId)
     {
-        Order? order = await this.dbContext.Orders
-            .Include(x => x.Products)
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Status == OrderStatus.InProgress);
-
-        if (order is null)
-        {
-            throw new NotFoundOrderException("Not found exception");
-        }
+        Order? order = await GetUserOrderAsync(userId);
 
         bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
         if (!existsProduct)
@@ -142,8 +127,52 @@ public class OrderService : IOrderService
 
     public async Task<OrderDetailsResponseModel> OrderDetailsAsync(Guid userId)
     {
+        Order order = await GetUserOrderAsync(userId);
+
+        return GetOrderDetails(order);
+    }
+
+    public async Task<OrderDetailsResponseModel> SendOrderAsync(Guid userId)
+    {
+        Order order = await GetUserOrderAsync(userId);
+
+        await RemoveProductFromOrdersInProgressAsync(order);
+
+        order.CreatedOn = DateTime.UtcNow;
+        order.Status = OrderStatus.Send;
+
+
+        await this.dbContext.SaveChangesAsync();
+
+        return GetOrderDetails(order);
+    }
+
+    private async Task RemoveProductFromOrdersInProgressAsync(Order order)
+    {
+        foreach (var productInOrder in order.Products)
+        {
+            Product product = productInOrder.Product;
+            int newProductQuantity = product.Quantity - productInOrder.Quantity;
+
+            if (newProductQuantity == 0)
+            {
+                ProductsList? productInfo = await this.dbContext.ProductsLists.FirstOrDefaultAsync(x => x.OrderId != order.Id && x.ProductId == product.Id);
+                if (productInfo is not null)
+                {
+                    this.dbContext.ProductsLists.Remove(productInfo);
+                }
+
+                product.InStock = false;
+            }
+
+            product.Quantity = newProductQuantity;
+        }
+    }
+
+    private async Task<Order> GetUserOrderAsync(Guid userId)
+    {
         Order? order = await this.dbContext.Orders
-            .Where(x => x.Products.Count > 0)
+            .Where(x => x.Products.Count > 0 && x.Status == OrderStatus.InProgress)
             .Include(x => x.Products)
             .ThenInclude(x => x.Product)
             .FirstOrDefaultAsync(x => x.UserId == userId);
@@ -153,11 +182,15 @@ public class OrderService : IOrderService
             throw new NotFoundOrderException("Not found exception");
         }
 
+        return order;
+    }
+
+    private OrderDetailsResponseModel GetOrderDetails(Order order)
+    {
         IReadOnlyList<ProductInOrderResponseModel> productsResponse = order.Products
             .Select(x => x.ToProductInOrder()).ToList();
 
         OrderDetailsResponseModel orderDetails = order.ToOrderDetails(productsResponse);
-
         return orderDetails;
     }
 }
