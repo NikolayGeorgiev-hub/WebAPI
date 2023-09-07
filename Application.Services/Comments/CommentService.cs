@@ -41,7 +41,8 @@ public class CommentService : ICommentService
     {
         IQueryable<Comment> commentsQuery = this.dbContext.Comments
             .Where(x => x.ProductId == productId)
-            .Include(x => x.User);
+            .Include(x => x.User)
+            .OrderByDescending(x => x.CreatedOn);
 
         int totalCount = await commentsQuery.CountAsync();
 

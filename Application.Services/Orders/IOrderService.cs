@@ -13,4 +13,6 @@ public interface IOrderService
     Task<OrderDetailsResponseModel> OrderDetailsAsync(Guid userId);
 
     Task<OrderDetailsResponseModel> SendOrderAsync(Guid userId);
+
+    Task CancelOrderAsync(Guid userId, Guid orderId);
 }

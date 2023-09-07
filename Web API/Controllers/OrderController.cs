@@ -74,6 +74,13 @@ public class OrderController : ControllerBase
         };
     }
 
+    [HttpPut("cancel/{orderId}")]
+    public async Task<ResponseContent> CancelOrderAsync(Guid orderId)
+    {
+        await this.orderService.CancelOrderAsync(GetUserId(), orderId);
+        return new ResponseContent();
+    }
+
     private Guid GetUserId()
         => ClaimsPrincipalExtensions.GetUserId(this.User);
 }

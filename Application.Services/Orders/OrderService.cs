@@ -147,6 +147,34 @@ public class OrderService : IOrderService
         return GetOrderDetails(order);
     }
 
+    public async Task CancelOrderAsync(Guid userId, Guid orderId)
+    {
+        Order? order = await this.dbContext.Orders
+            .Include(x => x.Products)
+            .ThenInclude(x => x.Product)
+            .FirstOrDefaultAsync(x => x.UserId == userId && x.Id == orderId && x.Status == OrderStatus.Send);
+
+        if (order is null)
+        {
+            throw new NotFoundOrderException("Not found order");
+        }
+
+        order.Status = OrderStatus.Canceled;
+
+        foreach (var productInOrder in order.Products)
+        {
+            int newQuantity = productInOrder.Product.Quantity + productInOrder.Quantity;
+            productInOrder.Product.Quantity = newQuantity;
+
+            if (!productInOrder.Product.InStock)
+            {
+                productInOrder.Product.InStock = true;
+            }
+        }
+
+        await this.dbContext.SaveChangesAsync();
+    }
+
     private async Task RemoveProductFromOrdersInProgressAsync(Order order)
     {
         foreach (var productInOrder in order.Products)
@@ -179,7 +207,7 @@ public class OrderService : IOrderService
 
         if (order is null)
         {
-            throw new NotFoundOrderException("Not found exception");
+            throw new NotFoundOrderException("Not found order");
         }
 
         return order;

@@ -1,6 +1,6 @@
 ﻿using Application.Data.Models.Categories;
 using Application.Data.Models.Products;
-
+using System.Diagnostics;
 using static Application.Common.Constants;
 
 namespace Application.Data.Seeding;
@@ -37,10 +37,12 @@ public class ProductsSeeder : ISeeder
             await dbContext.SaveChangesAsync();
         }
 
-        var user = dbContext.Users.FirstOrDefault();
+        
 
         if (dbContext.Products.Count() == 0)
         {
+            var user = dbContext.Users.FirstOrDefault();
+
             List<Product> products = new()
             {
                 new Product
