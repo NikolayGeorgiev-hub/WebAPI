@@ -3,11 +3,13 @@ using Application.Common.Extensions;
 using Application.Services.Comments;
 using Application.Services.Models;
 using Application.Services.Models.Comments;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web_API.Controllers;
 
+[Authorize]
 [Route("api/[controller]")]
 [ApiController]
 public class CommentsController : ControllerBase
@@ -20,7 +22,7 @@ public class CommentsController : ControllerBase
     }
 
     [HttpPost("add/{productId}")]
-    public async Task<ResponseContent> AddCommentAsync([FromRoute] Guid productId, AddCommentRequestModel requestModel)
+    public async Task<ResponseContent> AddCommentAsync([FromRoute] Guid productId, [FromBody] AddCommentRequestModel requestModel)
     {
         await this.commentService.AddCommentAsync(GetUserId(), productId, requestModel);
         return new ResponseContent();
@@ -34,6 +36,20 @@ public class CommentsController : ControllerBase
         {
             Result = result
         };
+    }
+
+    [HttpDelete("delete/{commentId}")]
+    public async Task<ResponseContent> DeleteAsync([FromRoute] Guid commentId)
+    {
+        await this.commentService.DeleteCommentAsync(GetUserId(), commentId);
+        return new ResponseContent();
+    }
+
+    [HttpPut("update/{commentId}")]
+    public async Task<ResponseContent> UpdateAsync([FromRoute] Guid commentId, [FromBody] AddCommentRequestModel requestModel)
+    {
+        await this.commentService.UpdateCommentAsync(GetUserId(), commentId, requestModel);
+        return new ResponseContent();
     }
 
     private Guid GetUserId()

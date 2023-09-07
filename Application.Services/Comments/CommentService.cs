@@ -1,10 +1,9 @@
-﻿using Application.Common.Exceptions.Products;
+﻿using Application.Common.Exceptions.Comments;
+using Application.Common.Exceptions.Products;
 using Application.Data;
 using Application.Data.Models.Comments;
-using Application.Data.Models.Products;
 using Application.Services.Models;
 using Application.Services.Models.Comments;
-using Application.Services.Models.Products;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Comments;
@@ -67,5 +66,29 @@ public class CommentService : ICommentService
             ItemsPerPage = requestModel.ItemsPerPage!.Value,
             PagesCount = pagesCount,
         };
+    }
+
+    public async Task DeleteCommentAsync(Guid userId, Guid commentId)
+    {
+        Comment? comment = await this.dbContext.Comments.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == commentId);
+        if (comment is null)
+        {
+            throw new NotFoundCommentException("Not found comment");
+        }
+
+        this.dbContext.Comments.Remove(comment);
+        await this.dbContext.SaveChangesAsync();
+    }
+
+    public async Task UpdateCommentAsync(Guid userId,Guid commentId,AddCommentRequestModel requestModel)
+    {
+        Comment? comment = await this.dbContext.Comments.FirstOrDefaultAsync(x => x.UserId == userId && x.Id == commentId);
+        if (comment is null)
+        {
+            throw new NotFoundCommentException("Not found comment");
+        }
+
+        comment.Content = requestModel.Content;
+        await this.dbContext.SaveChangesAsync();
     }
 }
