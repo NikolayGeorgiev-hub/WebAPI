@@ -40,7 +40,7 @@ public class UserConfiguration : IEntityTypeConfiguration<ApplicationUser>
 
         user
             .HasMany(x => x.Comments)
-            .WithOne()
+            .WithOne(x => x.User)
             .HasForeignKey(x => x.UserId)
             .OnDelete(DeleteBehavior.Restrict);
     }

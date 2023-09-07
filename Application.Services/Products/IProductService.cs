@@ -8,4 +8,6 @@ public interface IProductService
     Task CreteProductAsync(Guid ownerId, CreateProductRequestModel requestModel);
 
     Task<PaginationResponseModel<ProductResponseModel>> GetAllProductsAsync(ProductsFilter productsFilter);
+
+    Task<ProductDetailsResponseModel> GetProductDetailsAsync(Guid productId, PaginationRequestModel requestModel);
 }

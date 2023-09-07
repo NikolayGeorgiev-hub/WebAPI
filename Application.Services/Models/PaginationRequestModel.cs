@@ -10,7 +10,13 @@ public class PaginationRequestModel
 
     public int? ItemsPerPage
     {
-        get => itemsPerPage ?? DefaultItemsPerPage;
+        get
+        {
+            if (itemsPerPage == null || itemsPerPage <= 0)
+                itemsPerPage = DefaultItemsPerPage;
+
+            return itemsPerPage;
+        }
         set => itemsPerPage = value;
     }
 

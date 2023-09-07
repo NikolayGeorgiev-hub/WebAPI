@@ -25,6 +25,7 @@ using Application.Services.Categories;
 using Application.Services.Products;
 using Application.Services.Ratings;
 using Application.Services.Orders;
+using Application.Services.Comments;
 
 internal class Program
 {
@@ -129,6 +130,7 @@ internal class Program
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<IOrderService, OrderService>();
+        services.AddScoped<ICommentService, CommentService>();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)

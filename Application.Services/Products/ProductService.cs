@@ -1,9 +1,12 @@
 ﻿using Application.Common.Exceptions.Products;
 using Application.Data;
 using Application.Data.Models.Products;
+using Application.Services.Comments;
 using Application.Services.Extensions;
 using Application.Services.Models;
+using Application.Services.Models.Comments;
 using Application.Services.Models.Products;
+using Application.Services.Models.Ratings;
 using Application.Services.Ratings;
 using Microsoft.EntityFrameworkCore;
 
@@ -13,13 +16,16 @@ public class ProductService : IProductService
 {
     private readonly ApplicationDbContext dbContext;
     private readonly IRatingService ratingService;
+    private readonly ICommentService commentService;
 
     public ProductService(
         ApplicationDbContext dbContext,
-        IRatingService ratingService)
+        IRatingService ratingService,
+        ICommentService commentService)
     {
         this.dbContext = dbContext;
         this.ratingService = ratingService;
+        this.commentService = commentService;
     }
 
     public async Task CreteProductAsync(Guid ownerId, CreateProductRequestModel requestModel)
@@ -61,7 +67,8 @@ public class ProductService : IProductService
 
 
         IReadOnlyList<ProductResponseModel> products = await productsQuery
-            .Select(product => product.ToProductResponseModel(this.ratingService.GetProductRating(product.Id)))
+            .Select(product => product.ToProductResponseModel(
+                this.ratingService.GetProductRating(product.Id)))
             .ToListAsync();
 
 
@@ -74,6 +81,26 @@ public class ProductService : IProductService
             PagesCount = pagesCount,
         };
 
+    }
+
+    public async Task<ProductDetailsResponseModel> GetProductDetailsAsync(Guid productId, PaginationRequestModel requestModel)
+    {
+        Product? product = await this.dbContext.Products
+            .Include(x => x.Category)
+            .Include(x => x.SubCategory)
+            .FirstOrDefaultAsync(x => x.Id == productId);
+
+        if (product is null)
+        {
+            throw new NotFoundProductException("Not found product");
+        }
+
+        RatingResponseModel ratings = this.ratingService.GetProductRating(product.Id);
+        PaginationResponseModel<CommentResponseModel> comments = await this.commentService.GetAllCommentsAsync(productId, requestModel);
+
+       ProductDetailsResponseModel productDetails = product.ToProductDetailsResponseModel(ratings, comments);
+
+        return productDetails;
     }
 
     private IQueryable<Product> ApplyProductsFilter(IQueryable<Product> productsQuery, ProductsFilter productsFilter)

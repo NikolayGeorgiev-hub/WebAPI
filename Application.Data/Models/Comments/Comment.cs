@@ -1,4 +1,6 @@
-﻿namespace Application.Data.Models.Comments;
+﻿using Application.Data.Models.Users;
+
+namespace Application.Data.Models.Comments;
 
 public class Comment
 {
@@ -9,6 +11,8 @@ public class Comment
     public string Content { get; set; }
 
     public Guid UserId { get; set; }
+
+    public ApplicationUser User { get; set; }
 
     public Guid ProductId { get; set; }
 }

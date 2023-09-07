@@ -33,6 +33,17 @@ public class ProductsController : ControllerBase
         };
     }
 
+    [HttpGet("{productId}")]
+    public async Task<ResponseContent<ProductDetailsResponseModel>> GetProductDetailsAsync([FromRoute] Guid productId, [FromQuery] PaginationRequestModel requestModel)
+    {
+        ProductDetailsResponseModel productDetails = await this.productService.GetProductDetailsAsync(productId, requestModel);
+        return new ResponseContent<ProductDetailsResponseModel>
+        {
+            Result = productDetails
+        };
+    }
+
+
     [Authorize]
     [HttpPost("rate")]
     public async Task<ResponseContent> RateProductAsync([FromBody] RatingRequestModel requestModel)
