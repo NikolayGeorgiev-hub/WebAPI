@@ -1,4 +1,5 @@
 ﻿using Application.Data.Models.Categories;
+using Application.Data.Models.Comments;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Ratings;
 
@@ -31,4 +32,6 @@ public class Product
     public ICollection<Rating> Ratings { get; set; }
 
     public ICollection<ProductsList> Orders { get; set; }
+
+    public ICollection<Comment> Comments { get; set; }
 }
