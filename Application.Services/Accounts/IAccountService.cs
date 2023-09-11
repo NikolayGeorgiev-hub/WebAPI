@@ -14,6 +14,8 @@ public interface IAccountService
     Task ResetPasswordAsync(UserRequestModels.IdentityToken tokenModel, UserRequestModels.ResetPassword requestModel);
 
     Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId);
+
+    Task ChangePasswordAsync(Guid userId, UserRequestModels.ChangePassword requestModel);
 }
 
 

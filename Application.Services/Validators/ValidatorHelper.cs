@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json.Linq;
+﻿using Application.Services.Models.Users;
+using Newtonsoft.Json.Linq;
 using System.Text.RegularExpressions;
 
 namespace Application.Services.Validators;
