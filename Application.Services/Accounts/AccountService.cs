@@ -126,7 +126,7 @@ public class AccountService : IAccountService
         string resetPasswordToken = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(tokenModel.Token));
 
         bool isValidToken = await this.userManager
-            .VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", resetPasswordToken);
+           .VerifyUserTokenAsync(user, userManager.Options.Tokens.PasswordResetTokenProvider, "ResetPassword", resetPasswordToken);
 
         if (!isValidToken)
         {
@@ -141,6 +141,28 @@ public class AccountService : IAccountService
             throw new SecurityTokenException();
         }
 
+    }
+
+    public async Task ChangePasswordAsync(Guid userId, UserRequestModels.ChangePassword requestModel)
+    {
+        ApplicationUser? user = await this.userManager.FindByIdAsync(userId.ToString())
+            ?? throw new NotFoundUserException("Not found user with current id");
+
+        PasswordHasher<ApplicationUser> passwordHasher = new();
+        bool isCorrectPassword = userManager.PasswordHasher
+            .VerifyHashedPassword(user, user.PasswordHash!, requestModel.Password) == PasswordVerificationResult.Success;
+
+        if (!isCorrectPassword)
+        {
+            throw new InvalidLoginException("Invalid password");
+        }
+
+        IdentityResult result = await this.userManager.ChangePasswordAsync(user, requestModel.Password, requestModel.NewPassword);
+        if (!result.Succeeded)
+        {
+            this.logger.LogError(IdentityResultExtensions.GetIdentityResultMessages(result));
+            throw new InvalidLoginException(IdentityResultExtensions.GetIdentityResultMessages(result));
+        }
     }
 
     public async Task<UserResponseModels.Profile> GetUserProfileAsync(Guid userId)

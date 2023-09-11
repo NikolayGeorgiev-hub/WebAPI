@@ -109,4 +109,12 @@ public class AccountController : ControllerBase
 
         return new ResponseContent();
     }
+
+    [Authorize]
+    [HttpPost("change-password")]
+    public async Task<ResponseContent> ChangePassword([FromBody] UserRequestModels.ChangePassword requestModel)
+    {
+        await this.accountService.ChangePasswordAsync(ClaimsPrincipalExtensions.GetUserId(this.User), requestModel);
+        return new ResponseContent();
+    }
 }

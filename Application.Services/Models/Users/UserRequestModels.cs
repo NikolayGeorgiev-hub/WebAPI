@@ -13,4 +13,6 @@ public static class UserRequestModels
     public record ForgetPassword(string Email);
 
     public record ResetPassword(string Password, string ConfirmPassword);
+
+    public record ChangePassword(string Password, string NewPassword, string NewConfirmPassword);
 }
