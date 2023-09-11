@@ -3,13 +3,13 @@ using FluentValidation;
 
 namespace Application.Services.Validators.Products;
 
-public class CreateProductValidator : AbstractValidator<CreateProductRequestModel>
+public class EditProductValidator : AbstractValidator<EditProductRequestModel>
 {
-    public CreateProductValidator()
+    public EditProductValidator()
     {
         RuleFor(x => x.Name)
-            .NotEmpty()
-            .WithMessage("{PropertyName} is required");
+           .NotEmpty()
+           .WithMessage("{PropertyName} is required");
 
         RuleFor(x => x.Name)
             .Length(3, 50)
@@ -28,7 +28,7 @@ public class CreateProductValidator : AbstractValidator<CreateProductRequestMode
             .WithMessage("{PropertyName} must by in range {MinValue} - {MaxValue}");
 
         RuleFor(x => x.Quantity)
-           .ExclusiveBetween(0, 50000)
+           .ExclusiveBetween(-1, 50000)
            .WithMessage("{PropertyName} must by in range {MinValue} - {MaxValue} items");
 
         RuleFor(x => x.CategoryId)

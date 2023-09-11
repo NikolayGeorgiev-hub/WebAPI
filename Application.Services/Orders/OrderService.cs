@@ -5,6 +5,7 @@ using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Services.Extensions;
 using Application.Services.Models.Orders;
+using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Orders;
@@ -136,7 +137,7 @@ public class OrderService : IOrderService
     {
         Order order = await GetUserOrderAsync(userId);
 
-        await RemoveProductFromOrdersInProgressAsync(order);
+        await EditProductQuantityAsync(order);
 
         order.CreatedOn = DateTime.UtcNow;
         order.Status = OrderStatus.Send;
@@ -175,7 +176,7 @@ public class OrderService : IOrderService
         await this.dbContext.SaveChangesAsync();
     }
 
-    private async Task RemoveProductFromOrdersInProgressAsync(Order order)
+    private async Task EditProductQuantityAsync(Order order)
     {
         foreach (var productInOrder in order.Products)
         {

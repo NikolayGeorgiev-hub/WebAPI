@@ -1,5 +1,6 @@
 ﻿using Application.Common.Exceptions.Products;
 using Application.Data;
+using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Services.Comments;
 using Application.Services.Extensions;
@@ -98,9 +99,49 @@ public class ProductService : IProductService
         RatingResponseModel ratings = this.ratingService.GetProductRating(product.Id);
         PaginationResponseModel<CommentResponseModel> comments = await this.commentService.GetAllCommentsAsync(productId, requestModel);
 
-       ProductDetailsResponseModel productDetails = product.ToProductDetailsResponseModel(ratings, comments);
+        ProductDetailsResponseModel productDetails = product.ToProductDetailsResponseModel(ratings, comments);
 
         return productDetails;
+    }
+
+    public async Task EditProductAsync(Guid ownerId, Guid productId, EditProductRequestModel requestModel)
+    {
+        Product? product = await this.dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId && x.OwnerId == ownerId);
+        if (product is null)
+        {
+            throw new NotFoundProductException("Not found product");
+        }
+
+        await ValidateEditProductRequestAsync(requestModel, product);
+
+        product.Name = requestModel.Name;
+        product.Description = requestModel.Description;
+        product.Price = requestModel.Price;
+        product.Quantity = requestModel.Quantity;
+        product.CategoryId = requestModel.CategoryId;
+        product.SubCategoryId = requestModel.SubCategoryId;
+        product.InStock = requestModel.InStock;
+
+
+        if (requestModel.Quantity == 0)
+        {
+            product.InStock = false;
+        }
+
+        if (product.InStock == false)
+        {
+            IReadOnlyList<Order> orders = await this.dbContext.Orders
+             .Include(x => x.Products)
+             .Where(order => order.Products.Select(x => x.ProductId).Contains(productId) && order.Status == OrderStatus.InProgress).ToListAsync();
+
+            foreach (var order in orders)
+            {
+                ProductsList? productsList = order.Products.FirstOrDefault(x => x.ProductId == productId);
+                this.dbContext.ProductsLists.Remove(productsList!);
+            }
+        }
+        await this.dbContext.SaveChangesAsync();
+
     }
 
     private IQueryable<Product> ApplyProductsFilter(IQueryable<Product> productsQuery, ProductsFilter productsFilter)
@@ -164,6 +205,36 @@ public class ProductService : IProductService
         if (existsProductName)
         {
             throw new ExistsProductNameException("Name already exists");
+        }
+
+        bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);
+        if (!existsCategory)
+        {
+            throw new NotFoundCategoryException("Not found category");
+        }
+
+        bool existsSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId);
+        if (!existsSubCategory)
+        {
+            throw new NotFoundCategoryException("Not found category");
+        }
+
+        bool isValidSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId && x.CategoryId == requestModel.CategoryId);
+        if (!isValidSubCategory)
+        {
+            throw new NotFoundCategoryException("Not found category");
+        }
+    }
+
+    private async Task ValidateEditProductRequestAsync(EditProductRequestModel requestModel, Product product)
+    {
+        if (product.Name != requestModel.Name)
+        {
+            bool existsProductName = await this.dbContext.Products.AnyAsync(x => x.Name == requestModel.Name && x.Id != product.Id);
+            if (existsProductName)
+            {
+                throw new ExistsProductNameException("Name already exists");
+            }
         }
 
         bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);

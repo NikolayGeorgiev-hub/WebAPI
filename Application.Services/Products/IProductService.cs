@@ -10,4 +10,6 @@ public interface IProductService
     Task<PaginationResponseModel<ProductResponseModel>> GetAllProductsAsync(ProductsFilter productsFilter);
 
     Task<ProductDetailsResponseModel> GetProductDetailsAsync(Guid productId, PaginationRequestModel requestModel);
+
+    Task EditProductAsync(Guid ownerId, Guid productId, EditProductRequestModel requestModel);
 }
