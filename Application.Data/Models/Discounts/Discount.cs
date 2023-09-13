@@ -1,4 +1,6 @@
-﻿namespace Application.Data.Models.Discounts;
+﻿using Application.Data.Models.Products;
+
+namespace Application.Data.Models.Discounts;
 
 public class Discount
 {

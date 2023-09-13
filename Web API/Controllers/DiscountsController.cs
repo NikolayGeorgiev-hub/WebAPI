@@ -18,9 +18,16 @@ public class DiscountsController : ControllerBase
     }
 
     [HttpPost("create")]
-    public async Task<ResponseContent> CreateDiscountAsync(CreteDiscountRequestModel requestModel)
+    public async Task<ResponseContent> CreateDiscountAsync([FromBody] CreteDiscountRequestModel requestModel)
     {
         await this.discountService.CreateDiscountAsync(requestModel);
+        return new ResponseContent();
+    }
+
+    [HttpDelete("remove/{discountId}")]
+    public async Task<ResponseContent> RemoveDiscountAsync([FromRoute] Guid discountId)
+    {
+        await this.discountService.RemoveDiscountAsync(discountId);
         return new ResponseContent();
     }
 }
