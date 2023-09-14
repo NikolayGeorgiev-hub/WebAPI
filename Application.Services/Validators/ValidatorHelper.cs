@@ -17,8 +17,14 @@ public static class ValidatorHelper
     public static bool IsValidGuid(Guid currentId)
     {
         string valueToString = currentId.ToString();
-        var isValid = Guid.TryParse(valueToString, out var result);
+        bool result = Guid.TryParse(valueToString, out var isValid);
 
-        return isValid;
+        return result;
+    }
+
+    public static bool IsValidDate(DateTime? date)
+    {
+        bool result = DateTime.TryParse(date.ToString(), out var isValid);
+        return result;
     }
 }

@@ -21,59 +21,70 @@ public class DiscountService : IDiscountService
     {
         Discount discount = new()
         {
-            IsActive = true,
             Description = requestModel.Description,
             Percentage = requestModel.Percentage,
         };
 
+        if (requestModel.StartDate is not null && requestModel.EndDate is not null)
+        {
+            discount.IsActive = false;
+        }
+        else
+        {
+            discount.IsActive = true;
+        }
+
         await this.dbContext.Discounts.AddAsync(discount);
 
-        if (requestModel.CategoryId is not null)
+        if (discount.IsActive)
         {
-            bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);
-            if (!existsCategory)
+            if (requestModel.CategoryId is not null)
             {
-                throw new NotFoundCategoryException("Invalid category");
-            }
-
-            await this.dbContext.Products
-                .Where(x => x.CategoryId == requestModel.CategoryId && x.InStock == true)
-                .ForEachAsync(product => { UpdateProduct(product, discount); });
-
-            await this.dbContext.SaveChangesAsync();
-            return;
-
-        }
-
-        if (requestModel.SubCategoryId is not null)
-        {
-            bool existsSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId);
-            if (!existsSubCategory)
-            {
-                throw new NotFoundCategoryException("Invalid category");
-            }
-
-            await this.dbContext.Products
-                .Where(x => x.SubCategoryId == requestModel.SubCategoryId && x.InStock == true)
-                .ForEachAsync(product => { UpdateProduct(product, discount); });
-
-            await this.dbContext.SaveChangesAsync();
-            return;
-        }
-
-        if (requestModel.Products is not null)
-        {
-            foreach (var productId in requestModel.Products)
-            {
-                Product? product = await this.dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId);
-                if (product is not null)
+                bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);
+                if (!existsCategory)
                 {
-                    UpdateProduct(product, discount);
+                    throw new NotFoundCategoryException("Invalid category");
                 }
+
+                await this.dbContext.Products
+                    .Where(x => x.CategoryId == requestModel.CategoryId && x.InStock == true)
+                    .ForEachAsync(product => { UpdateProduct(product, discount); });
+
+                await this.dbContext.SaveChangesAsync();
+                return;
+
             }
 
-            await this.dbContext.SaveChangesAsync();
-            return;
+            if (requestModel.SubCategoryId is not null)
+            {
+                bool existsSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId);
+                if (!existsSubCategory)
+                {
+                    throw new NotFoundCategoryException("Invalid category");
+                }
+
+                await this.dbContext.Products
+                    .Where(x => x.SubCategoryId == requestModel.SubCategoryId && x.InStock == true)
+                    .ForEachAsync(product => { UpdateProduct(product, discount); });
+
+                await this.dbContext.SaveChangesAsync();
+                return;
+            }
+
+            if (requestModel.Products is not null)
+            {
+                foreach (var productId in requestModel.Products)
+                {
+                    Product? product = await this.dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId);
+                    if (product is not null)
+                    {
+                        UpdateProduct(product, discount);
+                    }
+                }
+
+                await this.dbContext.SaveChangesAsync();
+                return;
+            }
         }
     }
 
