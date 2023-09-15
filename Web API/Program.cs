@@ -27,6 +27,8 @@ using Application.Services.Ratings;
 using Application.Services.Orders;
 using Application.Services.Comments;
 using Application.Services.Discounts;
+using Hangfire;
+using Hangfire.SqlServer;
 
 internal class Program
 {
@@ -44,6 +46,7 @@ internal class Program
         ConfigureApplicationContext(builder.Services, builder.Configuration);
         ConfigureJwtToken(builder.Services, builder.Configuration);
 
+        ConfigureHangfire(builder.Services, builder.Configuration);
 
         builder.Services.AddMvc(options =>
         {
@@ -83,6 +86,7 @@ internal class Program
         app.UseAuthorization();
         app.UseMiddleware<TokenValidatorMiddleware>();
         app.MapControllers();
+        app.UseHangfireDashboard();
 
         app.Run();
     }
@@ -127,12 +131,31 @@ internal class Program
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
         services.AddScoped<IRoleService, RoleService>();
-        services.AddScoped<ICategoryService,CategoryService>();
+        services.AddScoped<ICategoryService, CategoryService>();
         services.AddScoped<IProductService, ProductService>();
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IDiscountService, DiscountService>();
+    }
+
+    private static void ConfigureHangfire(IServiceCollection services, IConfiguration configuration)
+    {
+        services
+            .AddHangfire(options => options
+            .SetDataCompatibilityLevel(CompatibilityLevel.Version_180)
+            .UseSimpleAssemblyNameTypeSerializer()
+            .UseRecommendedSerializerSettings()
+            .UseSqlServerStorage(configuration.GetConnectionString("HanfgireConnection"), new SqlServerStorageOptions
+            {
+                CommandBatchMaxTimeout = TimeSpan.FromMinutes(5),
+                SlidingInvisibilityTimeout = TimeSpan.FromMinutes(5),
+                QueuePollInterval = TimeSpan.Zero,
+                UseRecommendedIsolationLevel = true,
+                DisableGlobalLocks = true
+            }));
+
+        services.AddHangfireServer();
     }
 
     private static void ConfigureApplicationContext(IServiceCollection services, IConfiguration configuration)
