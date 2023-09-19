@@ -1,6 +1,5 @@
 ﻿using Application.Common;
 using Application.Common.Extensions;
-using Application.Data.Migrations;
 using Application.Services.Models.Products;
 using Application.Services.Products;
 using Microsoft.AspNetCore.Authorization;

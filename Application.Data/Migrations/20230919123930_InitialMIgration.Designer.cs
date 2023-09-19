@@ -12,8 +12,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Application.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    [Migration("20230913092228_EditDiscountModel")]
-    partial class EditDiscountModel
+    [Migration("20230919123930_InitialMIgration")]
+    partial class InitialMIgration
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -102,16 +102,19 @@ namespace Application.Data.Migrations
 
                     b.Property<string>("Description")
                         .IsRequired()
-                        .HasMaxLength(500)
+                        .HasMaxLength(300)
                         .IsUnicode(true)
-                        .HasColumnType("nvarchar(500)");
+                        .HasColumnType("nvarchar(300)");
 
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("bit");
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
 
                     b.Property<decimal>("Percentage")
                         .HasPrecision(10, 2)
                         .HasColumnType("decimal");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
 
                     b.HasKey("Id");
 
@@ -176,10 +179,6 @@ namespace Application.Data.Migrations
                     b.Property<Guid?>("DiscountId")
                         .HasColumnType("uniqueidentifier");
 
-                    b.Property<decimal?>("DiscountValue")
-                        .HasPrecision(10, 2)
-                        .HasColumnType("decimal");
-
                     b.Property<bool>("InStock")
                         .HasColumnType("bit");
 
@@ -195,6 +194,10 @@ namespace Application.Data.Migrations
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Percentage")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)

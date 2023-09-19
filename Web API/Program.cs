@@ -28,6 +28,7 @@ using Application.Services.Orders;
 using Application.Services.Comments;
 using Hangfire;
 using Hangfire.SqlServer;
+using Application.Services.Discounts;
 
 internal class Program
 {
@@ -135,6 +136,7 @@ internal class Program
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IDiscountService, DiscountService>();
     }
 
     private static void ConfigureHangfire(IServiceCollection services, IConfiguration configuration)

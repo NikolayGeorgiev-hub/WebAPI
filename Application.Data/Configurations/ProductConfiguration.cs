@@ -60,5 +60,15 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
             .WithOne()
             .HasForeignKey(x => x.ProductId)
             .OnDelete(DeleteBehavior.Restrict);
+
+        product
+            .Property(x => x.NewPrice)
+            .HasColumnType<decimal?>("decimal")
+            .HasPrecision(10, 2);
+
+        product
+           .Property(x => x.Percentage)
+           .HasColumnType<decimal?>("decimal")
+           .HasPrecision(10, 2);
     }
 }

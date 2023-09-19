@@ -91,6 +91,33 @@ namespace Application.Data.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("Application.Data.Models.Discounts.Discount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Percentage")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("Application.Data.Models.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -146,6 +173,9 @@ namespace Application.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<Guid?>("DiscountId")
+                        .HasColumnType("uniqueidentifier");
+
                     b.Property<bool>("InStock")
                         .HasColumnType("bit");
 
@@ -155,8 +185,16 @@ namespace Application.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(100)");
 
+                    b.Property<decimal?>("NewPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
+
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("Percentage")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
 
                     b.Property<decimal>("Price")
                         .HasPrecision(10, 2)
