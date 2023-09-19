@@ -29,6 +29,7 @@ using Application.Services.Comments;
 using Application.Services.Discounts;
 using Hangfire;
 using Hangfire.SqlServer;
+using HangfireBasicAuthenticationFilter;
 
 internal class Program
 {
@@ -153,7 +154,7 @@ internal class Program
                 QueuePollInterval = TimeSpan.Zero,
                 UseRecommendedIsolationLevel = true,
                 DisableGlobalLocks = true
-            }));
+            }).WithJobExpirationTimeout(TimeSpan.FromDays(10)));
 
         services.AddHangfireServer();
     }

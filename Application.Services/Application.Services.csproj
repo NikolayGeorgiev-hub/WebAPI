@@ -7,6 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="BackgroundServices\**" />
+    <EmbeddedResource Remove="BackgroundServices\**" />
+    <None Remove="BackgroundServices\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="FluentValidation" Version="11.7.1" />
     <PackageReference Include="Hangfire" Version="1.8.5" />
   </ItemGroup>
@@ -14,10 +20,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Application.Common\Application.Common.csproj" />
     <ProjectReference Include="..\Application.Data\Application.Data.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="BackgroundServices\" />
   </ItemGroup>
 
 </Project>
