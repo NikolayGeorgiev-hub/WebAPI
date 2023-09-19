@@ -1,6 +1,5 @@
 ﻿using Application.Data.Models.Categories;
 using Application.Data.Models.Comments;
-using Application.Data.Models.Discounts;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Ratings;
 
@@ -36,10 +35,5 @@ public class Product
 
     public ICollection<Comment> Comments { get; set; }
 
-    public decimal? NewPrice { get; set; }
-
-    public decimal? DiscountValue { get; set; }
-
-    public Guid? DiscountId { get; set; }
 }
 

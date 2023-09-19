@@ -23,8 +23,6 @@ public static class AutoMapperExtensions
             product.Name,
             product.Description,
             product.Price,
-            product.DiscountValue,
-            product.NewPrice,
             product.Quantity,
             product.Category.Name,
             product.SubCategory.Name,
@@ -36,8 +34,6 @@ public static class AutoMapperExtensions
             product.Name,
             product.Description,
             product.Price,
-            product.DiscountValue,
-            product.NewPrice,
             product.Quantity,
             product.Category.Name,
             product.SubCategory.Name,
@@ -50,10 +46,8 @@ public static class AutoMapperExtensions
         => new ProductInOrderResponseModel(
             item.Product.Name,
             item.Product.Price,
-            item.Product.DiscountValue,
-            item.Product.NewPrice,
             item.Quantity,
-            item.Quantity * item.Product.NewPrice ?? item.Quantity * item.Product.Price);
+            item.Quantity);
 
     public static OrderDetailsResponseModel ToOrderDetails(this Order order, IReadOnlyList<ProductInOrderResponseModel> products)
         => new OrderDetailsResponseModel(

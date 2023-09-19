@@ -4,6 +4,7 @@ using Application.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Application.Data.Migrations
 {
     [DbContext(typeof(ApplicationDbContext))]
-    partial class ApplicationDbContextModelSnapshot : ModelSnapshot
+    [Migration("20230919104343_AddRemoveJobIdToDiscountModel")]
+    partial class AddRemoveJobIdToDiscountModel
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -91,6 +94,42 @@ namespace Application.Data.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("Application.Data.Models.Discounts.Discount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(500)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(500)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsActive")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal>("Percentage")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
+
+                    b.Property<string>("RemoveJobId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("StartJobId")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("Application.Data.Models.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")
@@ -146,6 +185,13 @@ namespace Application.Data.Migrations
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(1000)");
 
+                    b.Property<Guid?>("DiscountId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<decimal?>("DiscountValue")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
+
                     b.Property<bool>("InStock")
                         .HasColumnType("bit");
 
@@ -154,6 +200,10 @@ namespace Application.Data.Migrations
                         .HasMaxLength(100)
                         .IsUnicode(true)
                         .HasColumnType("nvarchar(100)");
+
+                    b.Property<decimal?>("NewPrice")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
 
                     b.Property<Guid>("OwnerId")
                         .HasColumnType("uniqueidentifier");

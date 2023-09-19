@@ -30,16 +30,6 @@ public class ProductConfiguration : IEntityTypeConfiguration<Product>
              .HasPrecision(10, 2);
 
         product
-            .Property(x => x.DiscountValue)
-            .HasColumnType<decimal?>("decimal")
-            .HasPrecision(10, 2);
-
-        product
-            .Property(x => x.NewPrice)
-            .HasColumnType<decimal?>("decimal")
-            .HasPrecision(10, 2);
-      
-        product
             .Property(x => x.InStock)
             .IsRequired();
 

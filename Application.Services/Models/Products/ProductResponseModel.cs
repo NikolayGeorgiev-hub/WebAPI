@@ -6,8 +6,6 @@ public record ProductResponseModel(
     string Name,
     string Description,
     decimal Price,
-    decimal? DiscountValue,
-    decimal? NewPrice,
     int Quantity,
     string CategoryName,
     string SubCategoryName,
