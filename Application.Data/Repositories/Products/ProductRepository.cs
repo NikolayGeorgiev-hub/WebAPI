@@ -80,6 +80,11 @@ public class ProductRepository : IProductRepository
         }
     }
 
+    public async Task<bool> ExistsProductByIdAsync(Guid productId)
+    {
+        return await this.dbContext.Products.AnyAsync(x => x.Id == productId);
+    }
+
     public async Task<bool> ExistsProductInStockAsync(Guid productId)
     {
         bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);

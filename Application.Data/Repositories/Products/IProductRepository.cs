@@ -18,6 +18,8 @@ public interface IProductRepository
 
     Task ExistsProductNameWhenUpdateAsync(string productName, Guid productId);
 
+    Task<bool> ExistsProductByIdAsync(Guid productId);
+
     Task<bool> ExistsProductInStockAsync(Guid productId);
 
     Task SaveChangesAsync();

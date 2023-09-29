@@ -124,7 +124,6 @@ public class ProductService : IProductService
         await this.productRepository.SaveChangesAsync();
     }
 
-
     private RatingResponseModel CalculateProductRatings(ICollection<Rating> ratings)
     {
         int productRatingsCount = ratings.Count > 0 ? ratings.Count : 0;

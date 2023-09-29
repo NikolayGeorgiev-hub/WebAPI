@@ -32,6 +32,7 @@ using Application.Services.Discounts;
 using Application.Data.Repositories.Products;
 using Application.Data.Repositories.Categories;
 using Application.Data.Repositories.Orders;
+using Application.Data.Repositories.Ratings;
 
 internal class Program
 {
@@ -148,6 +149,7 @@ internal class Program
         services.AddScoped<IProductRepository, ProductRepository>();
         services.AddScoped<ICategoryRepository, CategoryRepository>();
         services.AddScoped<IOrderRepository, OrderRepository>();
+        services.AddScoped<IRatingRepository, RatingRepository>();
     }
 
     private static void ConfigureHangfire(IServiceCollection services, IConfiguration configuration)

@@ -1,30 +1,29 @@
 ﻿using Application.Common.Exceptions.Products;
 using Application.Common.Exceptions.Ratings;
-using Application.Data;
-using Application.Data.Models.Products;
 using Application.Data.Models.Ratings;
-using Application.Data.Models.Users;
+using Application.Data.Repositories.Products;
+using Application.Data.Repositories.Ratings;
 using Application.Services.Models.Ratings;
-using Microsoft.EntityFrameworkCore;
 
 namespace Application.Services.Ratings;
 
 public class RatingService : IRatingService
 {
-    private readonly ApplicationDbContext dbContext;
+    private readonly IRatingRepository ratingRepository;
+    private readonly IProductRepository productRepository;
 
-    public RatingService(ApplicationDbContext dbContext)
+    public RatingService(IRatingRepository ratingRepository, IProductRepository productRepository)
     {
-        this.dbContext = dbContext;
+        this.ratingRepository = ratingRepository;
+        this.productRepository = productRepository;
     }
 
     public async Task RateProductAsync(Guid userId, RatingRequestModel requestModel)
     {
-        bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == requestModel.ProductId);
+        bool existsProduct = await this.productRepository.ExistsProductByIdAsync(userId);
         if (!existsProduct)
-        {
             throw new NotFoundProductException("Not found product");
-        }
+
 
         bool isValidValueRange = requestModel.Value > 0 && requestModel.Value < 6;
         if (!isValidValueRange)
@@ -32,10 +31,7 @@ public class RatingService : IRatingService
             throw new InvalidRatingValueException("Invalid rating value range");
         }
 
-
-        Rating? userRating = await this.dbContext.Ratings
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.ProductId == requestModel.ProductId);
-
+        Rating? userRating = await this.ratingRepository.GetUserRatingForProductAsync(requestModel.ProductId, userId);
         if (userRating is null)
         {
             Rating rating = new()
@@ -46,7 +42,7 @@ public class RatingService : IRatingService
                 Value = requestModel.Value
             };
 
-            await dbContext.AddAsync(rating);
+            await this.ratingRepository.AddAsync(rating);
         }
         else
         {
@@ -54,22 +50,6 @@ public class RatingService : IRatingService
             userRating.CreatedOn = DateTime.UtcNow;
         }
 
-        await dbContext.SaveChangesAsync();
-    }
-
-    public  RatingResponseModel GetProductRating(Guid productId)
-    {
-        IReadOnlyList<Rating> ratings =  this.dbContext.Ratings.Where(x => x.ProductId == productId).ToList();
-
-        int ratingsCount = 0;
-        double averageRating = 0;
-
-        if (ratings.Count > 0)
-        {
-            ratingsCount = ratings.Count();
-            averageRating = ratings.Select(x => x.Value).Average();
-        }
-
-        return new RatingResponseModel(ratingsCount, averageRating);
+        await this.ratingRepository.SaveChangesAsync();
     }
 }
