@@ -3,124 +3,78 @@ using Application.Common.Exceptions.Products;
 using Application.Data;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
+using Application.Data.Repositories.Orders;
+using Application.Data.Repositories.Products;
 using Application.Services.Extensions;
 using Application.Services.Models.Orders;
+using Hangfire.Server;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 
 namespace Application.Services.Orders;
 
 public class OrderService : IOrderService
 {
     private readonly ApplicationDbContext dbContext;
+    private readonly IOrderRepository orderRepository;
+    private readonly IProductRepository productRepository;
 
-    public OrderService(ApplicationDbContext dbContext)
+    public OrderService(
+        ApplicationDbContext dbContext,
+        IOrderRepository orderRepository,
+        IProductRepository productRepository)
     {
         this.dbContext = dbContext;
+        this.orderRepository = orderRepository;
+        this.productRepository = productRepository;
     }
 
     public async Task AddProductAsync(Guid userId, Guid productId)
     {
-        Order? order = await this.dbContext.Orders
-            .Include(x => x.Products)
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Status == OrderStatus.InProgress);
+        Order? order = await this.orderRepository.GetUserOrderInProgressAsync(userId);
 
-        bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
-        if (!existsProduct)
-        {
-            throw new NotFoundProductException("Not found product");
-        }
+        await this.ValidateExistsProductAsync(productId);
 
-        if (order is null)
-        {
-            order = new()
-            {
-                CreatedOn = DateTime.UtcNow,
-                Status = OrderStatus.InProgress,
-                UserId = userId,
-            };
+        order = await this.AddOrderAsync(order, userId);
+        await this.AddOrUpdateProductInOrderAsync(order!, productId);
 
-            await this.dbContext.Orders.AddAsync(order);
-        }
-
-        ProductsList? productInOrder = order.Products
-            .FirstOrDefault(x => x.OrderId == order.Id && x.ProductId == productId);
-
-        if (productInOrder is not null)
-        {
-            productInOrder.Quantity++;
-        }
-        else
-        {
-            productInOrder = new()
-            {
-                OrderId = order.Id,
-                ProductId = productId,
-                Quantity = 1
-            };
-
-            await this.dbContext.ProductsLists.AddAsync(productInOrder);
-        }
-
-        await this.dbContext.SaveChangesAsync();
+        await this.orderRepository.SaveChangesAsync();
     }
 
     public async Task EditProductsQuantityAsync(Guid userId, Guid productId, string action)
     {
-        Order? order = await GetUserOrderAsync(userId);
+        Order? order = await this.GetUserOrderAsync(userId);
+        await this.ValidateExistsProductAsync(productId);
 
-        bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
-        if (!existsProduct)
-        {
-            throw new NotFoundProductException("Not found product");
-        }
-
-        ProductsList? productInOrder = order.Products
-            .FirstOrDefault(x => x.OrderId == order.Id && x.ProductId == productId);
-
-        if (productInOrder is null)
-        {
-            throw new NotFoundProductInOrder("Not found product in current order");
-        }
+        ProductsList productInOrder = this.ValidateProductIsInOrder(order, productId);
 
         if (action == "increase-count")
         {
             productInOrder.Quantity++;
-            if (productInOrder.Quantity > productInOrder.Product.Quantity)
-            {
+            int currentProductQuantity = productInOrder.Product.Quantity;
+
+            if (productInOrder.Quantity > currentProductQuantity)
                 throw new ProductOutOfStockException("Product out of stock");
-            }
         }
 
         if (action == "decrease-count")
         {
             productInOrder.Quantity--;
             if (productInOrder.Quantity == 0)
-            {
                 this.dbContext.ProductsLists.Remove(productInOrder);
-            }
         }
 
-        await this.dbContext.SaveChangesAsync();
+        await this.orderRepository.SaveChangesAsync();
     }
 
     public async Task RemoveProductAsync(Guid userId, Guid productId)
     {
-        Order? order = await GetUserOrderAsync(userId);
+        Order order = await GetUserOrderAsync(userId);
 
-        bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
-        if (!existsProduct)
-        {
-            throw new NotFoundProductException("Not found product");
-        }
+        await this.ValidateExistsProductAsync(productId);
 
-        ProductsList? productInOrder = order.Products
-            .FirstOrDefault(x => x.OrderId == order.Id && x.ProductId == productId);
-
-        if (productInOrder is null)
-        {
-            throw new NotFoundProductInOrder("Not found product in current order");
-        }
+        ProductsList productInOrder = this.ValidateProductIsInOrder(order, productId);
 
         this.dbContext.ProductsLists.Remove(productInOrder);
         await this.dbContext.SaveChangesAsync();
@@ -150,15 +104,11 @@ public class OrderService : IOrderService
 
     public async Task CancelOrderAsync(Guid userId, Guid orderId)
     {
-        Order? order = await this.dbContext.Orders
-            .Include(x => x.Products)
-            .ThenInclude(x => x.Product)
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Id == orderId && x.Status == OrderStatus.Send);
+        Order? order = await this.orderRepository.GetUserOrderInProgressAsync(userId);
 
         if (order is null)
-        {
             throw new NotFoundOrderException("Not found order");
-        }
+
 
         order.Status = OrderStatus.Canceled;
 
@@ -173,7 +123,67 @@ public class OrderService : IOrderService
             }
         }
 
-        await this.dbContext.SaveChangesAsync();
+        await this.orderRepository.SaveChangesAsync();
+    }
+
+
+
+    private async Task<Order> AddOrderAsync(Order? order, Guid userId)
+    {
+        if (order is null)
+        {
+            order = new()
+            {
+                CreatedOn = DateTime.UtcNow,
+                Status = OrderStatus.InProgress,
+                UserId = userId,
+            };
+
+            await this.orderRepository.AddAsync(order);
+        }
+
+        return order;
+    }
+
+    private async Task AddOrUpdateProductInOrderAsync(Order order, Guid productId)
+    {
+        ProductsList? productInOrder = order!.Products
+            .FirstOrDefault(x => x.OrderId == order.Id && x.ProductId == productId);
+
+        if (productInOrder is not null)
+        {
+            productInOrder.Quantity++;
+        }
+        else
+        {
+            productInOrder = new()
+            {
+                OrderId = order.Id,
+                ProductId = productId,
+                Quantity = 1
+            };
+
+            await this.orderRepository.AddProductToOrderAsync(productInOrder);
+        }
+    }
+
+    private async Task ValidateExistsProductAsync(Guid productId)
+    {
+        bool existsProduct = await this.productRepository.ExistsProductInStockAsync(productId);
+        if (!existsProduct)
+            throw new NotFoundProductException("Not found product");
+    }
+
+    private ProductsList ValidateProductIsInOrder(Order order, Guid productId)
+    {
+        ProductsList? productInOrder = order.Products
+            .FirstOrDefault(x => x.OrderId == order.Id && x.ProductId == productId);
+
+        if (productInOrder is null)
+            throw new NotFoundProductInOrder("Not found product in current order");
+
+
+        return productInOrder;
     }
 
     private async Task EditProductQuantityAsync(Order order)
@@ -200,11 +210,7 @@ public class OrderService : IOrderService
 
     private async Task<Order> GetUserOrderAsync(Guid userId)
     {
-        Order? order = await this.dbContext.Orders
-            .Where(x => x.Products.Count > 0 && x.Status == OrderStatus.InProgress)
-            .Include(x => x.Products)
-            .ThenInclude(x => x.Product)
-            .FirstOrDefaultAsync(x => x.UserId == userId);
+        Order? order = await this.orderRepository.GetUserOrderInProgressAsync(userId);
 
         if (order is null)
         {

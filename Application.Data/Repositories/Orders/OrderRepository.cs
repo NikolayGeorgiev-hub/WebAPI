@@ -13,6 +13,27 @@ public class OrderRepository : IOrderRepository
         this.dbContext = dbContext;
     }
 
+    public async Task AddAsync(Order order)
+    {
+        await this.dbContext.Orders.AddAsync(order);
+    }
+
+    public async Task AddProductToOrderAsync(ProductsList productsList)
+    {
+        await this.dbContext.ProductsLists.AddAsync(productsList);
+    }
+
+    public async Task<Order?> GetUserOrderInProgressAsync(Guid userId)
+    {
+        Order? order = await this.dbContext.Orders
+            .Where(x => x.Products.Count > 0 && x.Status == OrderStatus.InProgress)
+            .Include(x => x.Products)
+            .ThenInclude(x => x.Product)
+            .FirstOrDefaultAsync(x => x.UserId == userId);
+
+        return order;
+    }
+
     public async Task RemoveProductWhenOutOfStockAsync(Guid productId)
     {
         IQueryable<Order> orderQuery = this.dbContext.Orders

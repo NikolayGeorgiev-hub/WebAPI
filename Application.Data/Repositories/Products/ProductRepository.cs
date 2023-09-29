@@ -71,13 +71,19 @@ public class ProductRepository : IProductRepository
         }
     }
 
-    public async Task ExistsProductNameWhenUpdateAsync(string productName,Guid productId)
+    public async Task ExistsProductNameWhenUpdateAsync(string productName, Guid productId)
     {
         bool existsProductName = await this.dbContext.Products.AnyAsync(x => x.Name == productName && x.Id != productId);
         if (existsProductName)
         {
             throw new ExistsProductNameException("Name already exists");
         }
+    }
+
+    public async Task<bool> ExistsProductInStockAsync(Guid productId)
+    {
+        bool existsProduct = await this.dbContext.Products.AnyAsync(x => x.Id == productId && x.InStock == true);
+        return existsProduct;
     }
 
     public async Task SaveChangesAsync()
