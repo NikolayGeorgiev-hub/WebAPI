@@ -51,6 +51,11 @@ public class OrderRepository : IOrderRepository
 
     }
 
+    public void RemoveProductsFromOrder(ProductsList productInOrder)
+    {
+        this.dbContext.ProductsLists.Remove(productInOrder);
+    }
+
     public async Task SaveChangesAsync()
     {
         await this.dbContext.SaveChangesAsync();

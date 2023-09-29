@@ -13,5 +13,7 @@ public interface IOrderRepository
 
     Task RemoveProductWhenOutOfStockAsync(Guid productId);
 
+   void RemoveProductsFromOrder(ProductsList productInOrder);
+
     Task SaveChangesAsync();
 }

@@ -4,7 +4,8 @@ public record OrderDetailsResponseModel(
     DateTime CreatedOn, 
     string Status, 
     decimal TotalPrice, 
-    decimal? DiscountValue,
+    decimal TotalPriceDiscount,
+    decimal Difference,
     IReadOnlyList<ProductInOrderResponseModel> Products);
 
 

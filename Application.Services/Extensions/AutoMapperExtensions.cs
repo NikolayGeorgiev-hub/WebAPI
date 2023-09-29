@@ -8,6 +8,7 @@ using Application.Services.Models.Orders;
 using Application.Services.Models.Products;
 using Application.Services.Models.Ratings;
 using Application.Services.Models.Users;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 
 namespace Application.Services.Extensions;
 
@@ -42,20 +43,25 @@ public static class AutoMapperExtensions
             ratingResponse,
             commentsResponse);
 
-
-    public static ProductInOrderResponseModel ToProductInOrder(this ProductsList item)
+    public static ProductInOrderResponseModel ToProductInOrderInfo(this ProductsList item)
         => new ProductInOrderResponseModel(
             item.Product.Name,
             item.Product.Price,
             item.Quantity,
-            item.Quantity);
+            TotalPrice: item.Product.Price * item.Quantity,
+            TotalPriceDiscount: item.Product.DiscountId is not null ? item.Product.NewPrice * item.Quantity : null);
 
-    public static OrderDetailsResponseModel ToOrderDetails(this Order order, IReadOnlyList<ProductInOrderResponseModel> products)
+    public static OrderDetailsResponseModel ToOrderDetails(
+        this Order order,
+        decimal totalPrice,
+        decimal totalPriceDiscount,
+        decimal difference,
+        IReadOnlyList<ProductInOrderResponseModel> products)
         => new OrderDetailsResponseModel(
             order.CreatedOn,
             order.Status.ToString(),
-            products.Select(details => details.TotalPrice).Sum(),
-            products.Select(details => details.Price * details.Quantity).Sum() - products.Select(details => details.TotalPrice).Sum(),
+            totalPrice,
+            totalPriceDiscount,
+            difference,
             products);
-
 }

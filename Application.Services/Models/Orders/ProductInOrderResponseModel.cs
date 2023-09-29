@@ -4,7 +4,8 @@ public record ProductInOrderResponseModel(
     string ProductName,
     decimal Price,
     int Quantity,
-    decimal TotalPrice);
+    decimal TotalPrice,
+    decimal? TotalPriceDiscount);
 
 
 

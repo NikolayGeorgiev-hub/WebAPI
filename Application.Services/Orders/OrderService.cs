@@ -1,31 +1,24 @@
 ﻿using Application.Common.Exceptions.Orders;
 using Application.Common.Exceptions.Products;
-using Application.Data;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Data.Repositories.Orders;
 using Application.Data.Repositories.Products;
 using Application.Services.Extensions;
 using Application.Services.Models.Orders;
-using Hangfire.Server;
-using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 
 namespace Application.Services.Orders;
 
 public class OrderService : IOrderService
 {
-    private readonly ApplicationDbContext dbContext;
     private readonly IOrderRepository orderRepository;
     private readonly IProductRepository productRepository;
 
     public OrderService(
-        ApplicationDbContext dbContext,
         IOrderRepository orderRepository,
         IProductRepository productRepository)
     {
-        this.dbContext = dbContext;
         this.orderRepository = orderRepository;
         this.productRepository = productRepository;
     }
@@ -62,7 +55,7 @@ public class OrderService : IOrderService
         {
             productInOrder.Quantity--;
             if (productInOrder.Quantity == 0)
-                this.dbContext.ProductsLists.Remove(productInOrder);
+                this.orderRepository.RemoveProductsFromOrder(productInOrder);
         }
 
         await this.orderRepository.SaveChangesAsync();
@@ -76,8 +69,8 @@ public class OrderService : IOrderService
 
         ProductsList productInOrder = this.ValidateProductIsInOrder(order, productId);
 
-        this.dbContext.ProductsLists.Remove(productInOrder);
-        await this.dbContext.SaveChangesAsync();
+        this.orderRepository.RemoveProductsFromOrder(productInOrder);
+        await this.orderRepository.SaveChangesAsync();
     }
 
     public async Task<OrderDetailsResponseModel> OrderDetailsAsync(Guid userId)
@@ -96,15 +89,14 @@ public class OrderService : IOrderService
         order.CreatedOn = DateTime.UtcNow;
         order.Status = OrderStatus.Send;
 
-
-        await this.dbContext.SaveChangesAsync();
+        await this.orderRepository.SaveChangesAsync();
 
         return GetOrderDetails(order);
     }
 
     public async Task CancelOrderAsync(Guid userId, Guid orderId)
     {
-        Order? order = await this.orderRepository.GetUserOrderInProgressAsync(userId);
+        Order? order = await GetUserOrderAsync(userId);
 
         if (order is null)
             throw new NotFoundOrderException("Not found order");
@@ -125,8 +117,6 @@ public class OrderService : IOrderService
 
         await this.orderRepository.SaveChangesAsync();
     }
-
-
 
     private async Task<Order> AddOrderAsync(Order? order, Guid userId)
     {
@@ -195,10 +185,9 @@ public class OrderService : IOrderService
 
             if (newProductQuantity == 0)
             {
-                ProductsList? productInfo = await this.dbContext.ProductsLists.FirstOrDefaultAsync(x => x.OrderId != order.Id && x.ProductId == product.Id);
-                if (productInfo is not null)
+                if (productInOrder is not null)
                 {
-                    this.dbContext.ProductsLists.Remove(productInfo);
+                    this.orderRepository.RemoveProductsFromOrder(productInOrder);
                 }
 
                 product.InStock = false;
@@ -223,9 +212,47 @@ public class OrderService : IOrderService
     private OrderDetailsResponseModel GetOrderDetails(Order order)
     {
         IReadOnlyList<ProductInOrderResponseModel> productsResponse = order.Products
-            .Select(x => x.ToProductInOrder()).ToList();
+            .Select(productInfo => productInfo.ToProductInOrderInfo())
+            .ToList();
 
-        OrderDetailsResponseModel orderDetails = order.ToOrderDetails(productsResponse);
+
+        decimal totalPrice = productsResponse.Sum(x => x.TotalPrice);
+        decimal newTotalPrice = 0;
+        decimal difference = 0;
+
+        if (productsResponse.Any(x => x.TotalPriceDiscount is not null))
+        {
+            IList<ProductsList> productsWithDiscount = order.Products.Where(x => x.Product.DiscountId is not null).ToList();
+            IList<ProductsList> productsWithOutDiscount = order.Products.Where(x => x.Product.DiscountId is null).ToList();
+
+            decimal productsWithOutDiscountTotalPrice = productsWithOutDiscount
+                .Select(productInfo => new
+                {
+                    productInfo.Quantity,
+                    productInfo.Product
+                })
+                .Sum(calculation => calculation.Quantity * calculation.Product.Price);
+
+
+            decimal productsWithDiscountTotalPrice = productsWithDiscount
+                .Select(productInfo => new
+                {
+                    productInfo.Quantity,
+                    productInfo.Product
+                })
+                .Sum(calculation => calculation.Quantity * calculation.Product.NewPrice!.Value);
+
+
+            newTotalPrice = productsWithOutDiscountTotalPrice + productsWithDiscountTotalPrice;
+            difference = totalPrice - newTotalPrice;
+        }
+
+        OrderDetailsResponseModel orderDetails = order.ToOrderDetails(
+            totalPrice,
+            newTotalPrice,
+            difference,
+            productsResponse);
+
         return orderDetails;
     }
 }
