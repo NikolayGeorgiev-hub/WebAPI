@@ -1,4 +1,5 @@
-﻿using Application.Data.Models.Orders;
+﻿using Application.Common.Models;
+using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Data.Models.Users;
 using Application.Services.Models;

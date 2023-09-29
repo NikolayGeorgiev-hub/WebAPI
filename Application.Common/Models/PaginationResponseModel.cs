@@ -1,4 +1,4 @@
-﻿namespace Application.Services.Models;
+﻿namespace Application.Common.Models;
 
 public class PaginationResponseModel<TModel>
 {

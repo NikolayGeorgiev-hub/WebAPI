@@ -29,6 +29,9 @@ using Application.Services.Comments;
 using Hangfire;
 using Hangfire.SqlServer;
 using Application.Services.Discounts;
+using Application.Data.Repositories.Products;
+using Application.Data.Repositories.Categories;
+using Application.Data.Repositories.Orders;
 
 internal class Program
 {
@@ -50,8 +53,8 @@ internal class Program
 
         builder.Services.AddMvc(options =>
         {
-            options.Filters.Add<ExceptionFilter>();
-            options.Filters.Add<ModelStateFilter>();
+            //options.Filters.Add<ExceptionFilter>();
+            //options.Filters.Add<ModelStateFilter>();
         })
        .AddFluentValidation(options =>
        {
@@ -127,6 +130,8 @@ internal class Program
 
     private static void AddApplicationServices(IServiceCollection services)
     {
+        //Add application services
+
         services.AddScoped<IValidationService, ValidationService>();
         services.AddScoped<IAccountService, AccountService>();
         services.AddScoped<ITokenService, TokenService>();
@@ -137,6 +142,12 @@ internal class Program
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ICommentService, CommentService>();
         services.AddScoped<IDiscountService, DiscountService>();
+
+        //Add application repositories
+
+        services.AddScoped<IProductRepository, ProductRepository>();
+        services.AddScoped<ICategoryRepository, CategoryRepository>();
+        services.AddScoped<IOrderRepository, OrderRepository>();
     }
 
     private static void ConfigureHangfire(IServiceCollection services, IConfiguration configuration)

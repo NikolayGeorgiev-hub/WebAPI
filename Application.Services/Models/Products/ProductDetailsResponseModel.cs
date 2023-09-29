@@ -1,4 +1,5 @@
-﻿using Application.Services.Models.Comments;
+﻿using Application.Common.Models;
+using Application.Services.Models.Comments;
 using Application.Services.Models.Ratings;
 
 namespace Application.Services.Models.Products;

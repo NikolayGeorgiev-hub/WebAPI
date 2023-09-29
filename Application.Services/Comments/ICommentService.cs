@@ -1,4 +1,5 @@
-﻿using Application.Services.Models;
+﻿using Application.Common.Models;
+using Application.Services.Models;
 using Application.Services.Models.Comments;
 
 namespace Application.Services.Comments;

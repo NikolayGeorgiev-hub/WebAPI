@@ -1,10 +1,14 @@
 ﻿using Application.Common.Exceptions.Products;
+using Application.Common.Models;
 using Application.Data;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
+using Application.Data.Models.Ratings;
+using Application.Data.Repositories.Categories;
+using Application.Data.Repositories.Orders;
+using Application.Data.Repositories.Products;
 using Application.Services.Comments;
 using Application.Services.Extensions;
-using Application.Services.Models;
 using Application.Services.Models.Comments;
 using Application.Services.Models.Products;
 using Application.Services.Models.Ratings;
@@ -15,16 +19,22 @@ namespace Application.Services.Products;
 
 public class ProductService : IProductService
 {
-    private readonly ApplicationDbContext dbContext;
+    private readonly IProductRepository productRepository;
+    private readonly ICategoryRepository categoryRepository;
+    private readonly IOrderRepository orderRepository;
     private readonly IRatingService ratingService;
     private readonly ICommentService commentService;
 
     public ProductService(
-        ApplicationDbContext dbContext,
+        IProductRepository productRepository,
+        ICategoryRepository categoryRepository,
+        IOrderRepository orderRepository,
         IRatingService ratingService,
         ICommentService commentService)
     {
-        this.dbContext = dbContext;
+        this.productRepository = productRepository;
+        this.categoryRepository = categoryRepository;
+        this.orderRepository = orderRepository;
         this.ratingService = ratingService;
         this.commentService = commentService;
     }
@@ -45,38 +55,24 @@ public class ProductService : IProductService
             OwnerId = ownerId,
         };
 
-        await this.dbContext.AddAsync(product);
-        await this.dbContext.SaveChangesAsync();
+        await this.productRepository.AddAsync(product);
+        await this.productRepository.SaveChangesAsync();
     }
 
     public async Task<PaginationResponseModel<ProductResponseModel>> GetAllProductsAsync(ProductsFilter productsFilter)
     {
-        IQueryable<Product> productsQuery = this.dbContext.Products
-            .Include(x => x.Category)
-            .Include(x => x.SubCategory)
-            .OrderBy(x => x.Name);
+        IReadOnlyList<Product> products = await this.productRepository.GetAllAsync(productsFilter);
 
-        productsQuery = this.ApplyProductsFilter(productsQuery, productsFilter);
+        IReadOnlyList<ProductResponseModel> productsResponse = products.Select(product
+            => product.ToProductResponseModel(CalculateProductRatings(product.Ratings))).ToList();
 
-        int totalCount = await productsQuery.CountAsync();
-
-        productsQuery = productsQuery
-            .Skip(productsFilter.SkipCount)
-            .Take(productsFilter.ItemsPerPage!.Value);
-
-        int pagesCount = (int)Math.Ceiling((double)totalCount / productsFilter.ItemsPerPage!.Value);
-
-
-        IReadOnlyList<ProductResponseModel> products = await productsQuery
-            .Select(product => product.ToProductResponseModel(
-                this.ratingService.GetProductRating(product.Id)))
-            .ToListAsync();
-
+        int productsCount = await this.productRepository.GetCountAsync(productsFilter);
+        int pagesCount = (int)Math.Ceiling((double)productsCount / productsFilter.ItemsPerPage!.Value);
 
         return new PaginationResponseModel<ProductResponseModel>
         {
-            Items = products,
-            TotalItems = totalCount,
+            Items = productsResponse,
+            TotalItems = productsCount,
             PageNumber = productsFilter.PageNumber!.Value,
             ItemsPerPage = productsFilter.ItemsPerPage!.Value,
             PagesCount = pagesCount,
@@ -86,27 +82,24 @@ public class ProductService : IProductService
 
     public async Task<ProductDetailsResponseModel> GetProductDetailsAsync(Guid productId, PaginationRequestModel requestModel)
     {
-        Product? product = await this.dbContext.Products
-            .Include(x => x.Category)
-            .Include(x => x.SubCategory)
-            .FirstOrDefaultAsync(x => x.Id == productId);
+        Product? product = await this.productRepository.GetByIdAsync(productId);
 
         if (product is null)
         {
             throw new NotFoundProductException("Not found product");
         }
 
-        RatingResponseModel ratings = this.ratingService.GetProductRating(product.Id);
         PaginationResponseModel<CommentResponseModel> comments = await this.commentService.GetAllCommentsAsync(productId, requestModel);
 
-        ProductDetailsResponseModel productDetails = product.ToProductDetailsResponseModel(ratings, comments);
+        ProductDetailsResponseModel productDetails = product.ToProductDetailsResponseModel(CalculateProductRatings(product.Ratings), comments);
+
 
         return productDetails;
     }
 
     public async Task EditProductAsync(Guid ownerId, Guid productId, EditProductRequestModel requestModel)
     {
-        Product? product = await this.dbContext.Products.FirstOrDefaultAsync(x => x.Id == productId && x.OwnerId == ownerId);
+        Product? product = await this.productRepository.GetByIdAsync(productId);
         if (product is null)
         {
             throw new NotFoundProductException("Not found product");
@@ -122,137 +115,43 @@ public class ProductService : IProductService
         product.SubCategoryId = requestModel.SubCategoryId;
         product.InStock = requestModel.InStock;
 
-
         if (requestModel.Quantity == 0)
         {
             product.InStock = false;
         }
 
-        if (product.InStock == false)
-        {
-            IReadOnlyList<Order> orders = await this.dbContext.Orders
-             .Include(x => x.Products)
-             .Where(order => order.Products.Select(x => x.ProductId).Contains(productId) && order.Status == OrderStatus.InProgress).ToListAsync();
-
-            foreach (var order in orders)
-            {
-                ProductsList? productsList = order.Products.FirstOrDefault(x => x.ProductId == productId);
-                this.dbContext.ProductsLists.Remove(productsList!);
-            }
-        }
-        await this.dbContext.SaveChangesAsync();
-
+        await this.orderRepository.RemoveProductWhenOutOfStockAsync(productId);
+        await this.productRepository.SaveChangesAsync();
     }
 
-    private IQueryable<Product> ApplyProductsFilter(IQueryable<Product> productsQuery, ProductsFilter productsFilter)
+
+    private RatingResponseModel CalculateProductRatings(ICollection<Rating> ratings)
     {
-        if (productsFilter.CategoryId is not null)
-        {
-            productsQuery = productsQuery.Where(x => x.CategoryId == productsFilter.CategoryId);
-        }
+        int productRatingsCount = ratings.Count > 0 ? ratings.Count : 0;
+        double averageProductRating = ratings.Count > 0 ? ratings.Select(x => x.Value).Average() : 0;
 
-        if (productsFilter.SearchTerm is not null)
-        {
-            productsQuery = productsQuery.Where(x => x.Name.Contains(productsFilter.SearchTerm));
-        }
+        RatingResponseModel productRating = new(productRatingsCount, averageProductRating);
 
-        if (productsFilter.SubCategories is not null)
-        {
-            HashSet<IQueryable<Product>> filterResults = new();
-
-            foreach (var subCategoryId in productsFilter.SubCategories)
-            {
-                IQueryable<Product> tempProductQuery = productsQuery.Where(x => x.SubCategoryId == subCategoryId);
-                filterResults.Add(tempProductQuery);
-            }
-
-            productsQuery = filterResults.Aggregate((q1, q2) => q1.Union(q2));
-        }
-
-        if (productsFilter.SortingFilter is not null)
-        {
-            switch (productsFilter.SortingFilter)
-            {
-                case SortingFilter.NameDescending:
-                    productsQuery = productsQuery.OrderByDescending(x => x.Name);
-                    break;
-                case SortingFilter.NameAscending:
-                    productsQuery = productsQuery.OrderBy(x => x.Name);
-                    break;
-                case SortingFilter.PriceDescending:
-                    productsQuery = productsQuery.OrderByDescending(x => x.Price);
-                    break;
-                case SortingFilter.PriceAscending:
-                    productsQuery = productsQuery.OrderBy(x => x.Price);
-                    break;
-                case SortingFilter.RatingDescending:
-                    productsQuery = productsQuery.OrderByDescending(x => x.Ratings.Select(x => x.Value).Average());
-                    break;
-                case SortingFilter.RatingAscending:
-                    productsQuery = productsQuery.OrderBy(x => x.Ratings.Select(x => x.Value).Average());
-                    break;
-                default:
-                    break;
-            }
-        }
-
-        return productsQuery;
+        return productRating;
     }
 
     private async Task ValidateCreateProductRequestAsync(CreateProductRequestModel requestModel)
     {
-        bool existsProductName = await this.dbContext.Products.AnyAsync(x => x.Name == requestModel.Name);
-        if (existsProductName)
-        {
-            throw new ExistsProductNameException("Name already exists");
-        }
-
-        bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);
-        if (!existsCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
-
-        bool existsSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId);
-        if (!existsSubCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
-
-        bool isValidSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId && x.CategoryId == requestModel.CategoryId);
-        if (!isValidSubCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
+        await this.productRepository.ExistsProductNameAsync(requestModel.Name);
+        await this.categoryRepository.ExistsCategoryByIdAsync(requestModel.CategoryId);
+        await this.categoryRepository.ExistsSubCategoryByIdAsync(requestModel.SubCategoryId);
+        await this.categoryRepository.CategoryContainsSubCategoryAsync(requestModel.SubCategoryId, requestModel.CategoryId);
     }
 
     private async Task ValidateEditProductRequestAsync(EditProductRequestModel requestModel, Product product)
     {
         if (product.Name != requestModel.Name)
         {
-            bool existsProductName = await this.dbContext.Products.AnyAsync(x => x.Name == requestModel.Name && x.Id != product.Id);
-            if (existsProductName)
-            {
-                throw new ExistsProductNameException("Name already exists");
-            }
+            await this.productRepository.ExistsProductNameWhenUpdateAsync(requestModel.Name, product.Id);
         }
 
-        bool existsCategory = await this.dbContext.Categories.AnyAsync(x => x.Id == requestModel.CategoryId);
-        if (!existsCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
-
-        bool existsSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId);
-        if (!existsSubCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
-
-        bool isValidSubCategory = await this.dbContext.SubCategories.AnyAsync(x => x.Id == requestModel.SubCategoryId && x.CategoryId == requestModel.CategoryId);
-        if (!isValidSubCategory)
-        {
-            throw new NotFoundCategoryException("Not found category");
-        }
+        await this.categoryRepository.ExistsCategoryByIdAsync(requestModel.CategoryId);
+        await this.categoryRepository.ExistsSubCategoryByIdAsync(requestModel.SubCategoryId);
+        await this.categoryRepository.CategoryContainsSubCategoryAsync(requestModel.SubCategoryId, requestModel.CategoryId);
     }
 }

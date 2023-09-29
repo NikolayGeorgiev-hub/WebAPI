@@ -1,4 +1,4 @@
-﻿namespace Application.Services.Models.Products;
+﻿namespace Application.Common.Models;
 
 public class ProductsFilter : PaginationRequestModel
 {

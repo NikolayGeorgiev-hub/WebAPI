@@ -30,7 +30,7 @@ public class OwnerController : ControllerBase
     [HttpPut("edit-product/{productId}")]
     public async Task<ResponseContent> EditProductAsync(Guid productId, [FromBody] EditProductRequestModel requestModel)
     {
-        await this.productService.EditProductAsync(ClaimsPrincipalExtensions.GetUserId(this.User), productId, requestModel);
+       await this.productService.EditProductAsync(ClaimsPrincipalExtensions.GetUserId(this.User), productId, requestModel);
         return new ResponseContent();
     }
 }
