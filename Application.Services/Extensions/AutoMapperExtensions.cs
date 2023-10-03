@@ -9,6 +9,7 @@ using Application.Services.Models.Products;
 using Application.Services.Models.Ratings;
 using Application.Services.Models.Users;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using System.Collections.Generic;
 
 namespace Application.Services.Extensions;
 
@@ -51,12 +52,7 @@ public static class AutoMapperExtensions
             TotalPrice: item.Product.Price * item.Quantity,
             TotalPriceDiscount: item.Product.DiscountId is not null ? item.Product.NewPrice * item.Quantity : null);
 
-    public static OrderDetailsResponseModel ToOrderDetails(
-        this Order order,
-        decimal totalPrice,
-        decimal totalPriceDiscount,
-        decimal difference,
-        IReadOnlyList<ProductInOrderResponseModel> products)
+    public static OrderDetailsResponseModel ToOrderDetails(this Order order, decimal totalPrice, decimal totalPriceDiscount, decimal difference, IReadOnlyList<ProductInOrderResponseModel> products)
         => new OrderDetailsResponseModel(
             order.CreatedOn,
             order.Status.ToString(),
@@ -64,4 +60,21 @@ public static class AutoMapperExtensions
             totalPriceDiscount,
             difference,
             products);
+
+    public static OrderResponseModel ToOrderResponseModel(this Order order)
+        => new OrderResponseModel(
+                order.CreatedOn,
+                order.Status.ToString(),
+                order.Details!.TotalAmount,
+                order.Details.TotalAmountWithDiscount,
+                order.Details.Difference, order.Details.Products
+                    .Select(product
+                        => new ProductInOrderResponseModel(
+                            product.ProductName,
+                            product.Price,
+                            product.Quantity,
+                            product.TotalAmount,
+                            product.PriceWithDiscount))
+                    .ToList());
+
 }

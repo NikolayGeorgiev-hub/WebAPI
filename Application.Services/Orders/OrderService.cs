@@ -84,14 +84,50 @@ public class OrderService : IOrderService
     {
         Order order = await GetUserOrderAsync(userId);
 
-        await EditProductQuantityAsync(order);
+        EditProductQuantity(order);
 
+        OrderDetailsResponseModel orderInformation = this.GetOrderDetails(order);
+
+        OrderDetails orderDetails = new()
+        {
+            OrderId = order.Id,
+            TotalAmount = orderInformation.TotalPrice,
+            TotalAmountWithDiscount = orderInformation.TotalPriceDiscount,
+            Difference = orderInformation.Difference,
+        };
+
+        orderDetails.Products = orderInformation.Products
+            .Select(product
+                => new OrderProductDetails
+                {
+                    ProductName = product.ProductName,
+                    Quantity = product.Quantity,
+                    Price = product.Price,
+                    TotalAmount = product.TotalPrice,
+                    PriceWithDiscount = product.TotalPriceDiscount,
+                    OrderDetailsId = orderDetails.Id
+                })
+            .ToList();
+
+        await this.orderRepository.AddOrderDetailsAsync(orderDetails);
+        await this.orderRepository.SaveChangesAsync();
+
+        order.DetailsId = orderDetails.Id;
         order.CreatedOn = DateTime.UtcNow;
         order.Status = OrderStatus.Send;
+
 
         await this.orderRepository.SaveChangesAsync();
 
         return GetOrderDetails(order);
+    }
+
+    public async Task<IReadOnlyList<OrderResponseModel>> OrdersHistoryAsync(Guid userId)
+    {
+        IReadOnlyList<Order> orders = await this.orderRepository.GetOrderHistoryAsync(userId);
+        var ordersResponse = orders.Select(x => x.ToOrderResponseModel()).ToList();
+            
+        return ordersResponse;
     }
 
     public async Task CancelOrderAsync(Guid userId, Guid orderId)
@@ -176,7 +212,7 @@ public class OrderService : IOrderService
         return productInOrder;
     }
 
-    private async Task EditProductQuantityAsync(Order order)
+    private void EditProductQuantity(Order order)
     {
         foreach (var productInOrder in order.Products)
         {

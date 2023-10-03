@@ -10,5 +10,11 @@ public class OrderConfigurations : IEntityTypeConfiguration<Order>
     {
         order
             .HasKey(x => x.Id);
+
+        order
+            .HasOne(x => x.Details)
+            .WithOne()
+            .HasForeignKey<Order>(x => x.DetailsId)
+            .OnDelete(DeleteBehavior.Restrict);
     }
 }

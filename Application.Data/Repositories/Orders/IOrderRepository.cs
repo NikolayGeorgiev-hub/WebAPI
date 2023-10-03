@@ -7,7 +7,11 @@ public interface IOrderRepository
 {
     Task AddAsync(Order order);
 
+    Task AddOrderDetailsAsync(OrderDetails orderDetails);
+
     Task AddProductToOrderAsync(ProductsList productsList);
+
+    Task<IReadOnlyList<Order>> GetOrderHistoryAsync(Guid userId);
 
     Task<Order?> GetUserOrderInProgressAsync(Guid userId);
 

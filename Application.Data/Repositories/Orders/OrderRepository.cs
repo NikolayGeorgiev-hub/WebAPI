@@ -18,9 +18,25 @@ public class OrderRepository : IOrderRepository
         await this.dbContext.Orders.AddAsync(order);
     }
 
+    public async Task AddOrderDetailsAsync(OrderDetails orderDetails)
+    {
+        await this.dbContext.OrderDetails.AddAsync(orderDetails);
+    }
+
     public async Task AddProductToOrderAsync(ProductsList productsList)
     {
         await this.dbContext.ProductsLists.AddAsync(productsList);
+    }
+
+    public async Task<IReadOnlyList<Order>> GetOrderHistoryAsync(Guid userId)
+    {
+        IReadOnlyList<Order> orders = await this.dbContext.Orders
+            .Where(x => x.UserId == userId && x.Status != OrderStatus.InProgress)
+            .Include(x => x.Details)
+            .ThenInclude(x => x.Products)
+            .ToListAsync();
+
+        return orders;
     }
 
     public async Task<Order?> GetUserOrderInProgressAsync(Guid userId)

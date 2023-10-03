@@ -64,6 +64,17 @@ public class OrderController : ControllerBase
         };
     }
 
+    [HttpGet("history")]
+    public async Task<ResponseContent<IReadOnlyList<OrderResponseModel>>> OrderHistoryAsync()
+    {
+        IReadOnlyList<OrderResponseModel> orderResponse = await this.orderService.OrdersHistoryAsync(GetUserId());
+
+        return new ResponseContent<IReadOnlyList<OrderResponseModel>>()
+        {
+            Result = orderResponse,
+        };
+    }
+
     [HttpPost("send")]
     public async Task<ResponseContent<OrderDetailsResponseModel>> SendOrderAsync()
     {

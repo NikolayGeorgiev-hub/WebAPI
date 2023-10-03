@@ -16,4 +16,8 @@ public class Order
     public OrderStatus Status { get; set; }
 
     public ICollection<ProductsList> Products { get; set; }
+
+    public int? DetailsId { get; set; }
+
+    public OrderDetails? Details { get; set; }
 }

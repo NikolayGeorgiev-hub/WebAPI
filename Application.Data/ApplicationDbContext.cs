@@ -38,6 +38,10 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<Comment> Comments { get; set; }
 
     public DbSet<Discount> Discounts { get; set; }
+
+    public DbSet<OrderDetails> OrderDetails { get; set; }
+
+    public DbSet<OrderProductDetails> OrderProducts { get; set; }
     private void ConfigureApplicationRelations(ModelBuilder builder)
          => builder.ApplyConfigurationsFromAssembly(this.GetType().Assembly);
 

@@ -10,6 +10,8 @@ public interface IOrderService
 
     Task RemoveProductAsync(Guid userId, Guid productId);
 
+    Task<IReadOnlyList<OrderResponseModel>> OrdersHistoryAsync(Guid userId);
+
     Task<OrderDetailsResponseModel> OrderDetailsAsync(Guid userId);
 
     Task<OrderDetailsResponseModel> SendOrderAsync(Guid userId);
