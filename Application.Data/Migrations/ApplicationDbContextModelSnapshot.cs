@@ -91,6 +91,33 @@ namespace Application.Data.Migrations
                     b.ToTable("Comments");
                 });
 
+            modelBuilder.Entity("Application.Data.Models.Discounts.Discount", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasMaxLength(300)
+                        .IsUnicode(true)
+                        .HasColumnType("nvarchar(300)");
+
+                    b.Property<DateTime?>("EndDate")
+                        .HasColumnType("datetime2");
+
+                    b.Property<decimal>("Percentage")
+                        .HasPrecision(10, 2)
+                        .HasColumnType("decimal");
+
+                    b.Property<DateTime?>("StartDate")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Discounts");
+                });
+
             modelBuilder.Entity("Application.Data.Models.Orders.Order", b =>
                 {
                     b.Property<Guid>("Id")

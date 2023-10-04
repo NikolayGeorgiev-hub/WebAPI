@@ -1,5 +1,6 @@
 ﻿using Application.Data.Models.Categories;
 using Application.Data.Models.Comments;
+using Application.Data.Models.Discounts;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Ratings;
 

@@ -28,6 +28,7 @@ using Application.Services.Orders;
 using Application.Services.Comments;
 using Hangfire;
 using Hangfire.SqlServer;
+using Application.Services.Discounts;
 using Application.Data.Repositories.Products;
 using Application.Data.Repositories.Categories;
 using Application.Data.Repositories.Orders;
@@ -141,6 +142,7 @@ internal class Program
         services.AddScoped<IRatingService, RatingService>();
         services.AddScoped<IOrderService, OrderService>();
         services.AddScoped<ICommentService, CommentService>();
+        services.AddScoped<IDiscountService, DiscountService>();
 
         //Add application repositories
 
