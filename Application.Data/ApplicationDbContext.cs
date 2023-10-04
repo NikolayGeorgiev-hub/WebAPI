@@ -1,6 +1,5 @@
 ﻿using Application.Data.Models.Categories;
 using Application.Data.Models.Comments;
-using Application.Data.Models.Discounts;
 using Application.Data.Models.Orders;
 using Application.Data.Models.Products;
 using Application.Data.Models.Ratings;
@@ -36,9 +35,6 @@ public class ApplicationDbContext : IdentityDbContext<ApplicationUser, Applicati
     public DbSet<ProductsList> ProductsLists { get; set; }
 
     public DbSet<Comment> Comments { get; set; }
-
-    public DbSet<Discount> Discounts { get; set; }
-
     public DbSet<OrderDetails> OrderDetails { get; set; }
 
     public DbSet<OrderProductDetails> OrderProducts { get; set; }
