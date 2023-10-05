@@ -14,4 +14,10 @@ public class Discount
     public DateTime? StartDate { get; set; }
 
     public DateTime? EndDate { get; set; }
+
+    public bool IsActive { get; set; }
+
+    public string? StartBackgroundJodId { get; set; }
+
+    public string? EndBackGroundJodId { get; set; }
 }

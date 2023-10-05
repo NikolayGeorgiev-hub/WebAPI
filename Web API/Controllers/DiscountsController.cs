@@ -1,7 +1,6 @@
 ﻿using Application.Common;
 using Application.Services.Discounts;
 using Application.Services.Models.Discounts;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Web_API.Controllers;
@@ -21,6 +20,13 @@ public class DiscountsController : ControllerBase
     public async Task<ResponseContent> CreteDiscountAsync(CreteDiscountRequestModel requestModel)
     {
         await this.discountService.CreteDiscountAsync(requestModel);
+        return new ResponseContent();
+    }
+
+    [HttpDelete("remove/{discountId}")]
+    public async Task<ResponseContent> RemoveDiscountAsync([FromRoute] Guid discountId)
+    {
+        await this.discountService.RemoveDiscountAsync(discountId);
         return new ResponseContent();
     }
 }
